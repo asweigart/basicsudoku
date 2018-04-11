@@ -91,7 +91,7 @@ class SudokuBoard(object):
 
         # When strict-mode is True, an exception will be raised if an illegal
         # symbol is placed on the board.
-        self.strict = strict
+        self._strict = strict
         self.clear_board()
 
         if symbols is not None:
@@ -109,13 +109,23 @@ class SudokuBoard(object):
                 self._board[i % BOARD_LENGTH][i // BOARD_LENGTH] = symbol
 
             # If the symbols argument results in an invalid board while strict mode is enabled, raise an exception.
-            if self.strict and not self.is_valid_board():
+            if self._strict and not self.is_valid_board():
                 self.clear_board()
                 raise SudokuBoardException('symbols argument results in an invalid board while strict mode is enabled')
 
         # Solve the board, if needed.
         if solved:
             self.solve()
+
+    @property
+    def strict(self):
+        return self._strict
+
+    @strict.setter
+    def strict(self, value):
+        if not isinstance(value, bool):
+            raise SudokuBoardException('strict must be set to a bool value')
+        self._strict = value
 
 
     def clear_board(self):
@@ -228,7 +238,7 @@ class SudokuBoard(object):
         old_value = self._board[x][y]
         self._board[x][y] = value
 
-        if self.strict:
+        if self._strict:
             if self.is_valid_board() == False:
                 self._board[x][y] = old_value # restore old value
                 raise SudokuBoardException('strict mode is enabled, and this symbol assignment causes the board to become invalid')
