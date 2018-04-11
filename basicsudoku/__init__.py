@@ -68,7 +68,15 @@ FULL_BOARD_SIZE = 81
 
 class SudokuBoard(object):
     def __init__(self, symbols=None, strict=True, solved=False):
-        """TODO
+        """Return a new data structure to represent a 9x9 Sudoku board.
+        SudokuBoard objects are mutable and can have their symbols modified
+        in-place.
+
+        Symbols can be set using a tuple of two integer indexes (0-8 inclusive)
+        for the position, while the symbol is an int or str between 1 and 9.
+
+        Empty spaces on the board are set to EMPTY_SPACE, which is the '.'
+        string.
 
         * symbols - An optional string of 81 symbols to initially fill the board
         with. EMPTY_SPACE, that is '.', can be a symbol. The symbols argument
@@ -105,12 +113,13 @@ class SudokuBoard(object):
                 self.clear_board()
                 raise SudokuBoardException('symbols argument results in an invalid board while strict mode is enabled')
 
-        # Solve the board.
+        # Solve the board, if needed.
         if solved:
             self.solve()
 
 
     def clear_board(self):
+        """Sets all spaces on the board to EMPTY_SPACE."""
         self._board = [[EMPTY_SPACE] * BOARD_LENGTH for i in range(BOARD_LENGTH)] # create an empty board
 
 
@@ -310,6 +319,22 @@ class SudokuBoard(object):
         pass
 
 
+    def __copy__(self):
+        """Returns a copy of this object."""
+        return SudokuBoard(symbols=self.get_symbols())
+
+
+    def __deepcopy__(self):
+        """Returns a deep copy of this object (which is the same as a shallow
+        copy for this class)."""
+        return self.__copy__()
+
+
+    def copy(self):
+        """Returns a copy of this object."""
+        return self.__copy__()
+
+
 class SudokuBoardException(Exception):
     """For simplicity, the basicsudoku module only has one exception. Any
     Python built-in exceptions raised from basicsudoku should be considered
@@ -318,8 +343,9 @@ class SudokuBoardException(Exception):
     pass
 
 
-b1 = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
-b2 = SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179')
+# Some sample SudokuBoard objects for testing/debugging purposes.
+_b1 = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+_b2 = SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179')
 
 
 if __name__ == '__main__':
