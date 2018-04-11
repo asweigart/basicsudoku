@@ -16,12 +16,13 @@ def test_ctor():
     assert board.get_symbols() == '.................................................................................'
 
     # Test with default values for the keyword arguments.
-    board = basicsudoku.SudokuBoard(symbols=None, strict=True, solved=False)
+    board = basicsudoku.SudokuBoard(symbols=None, size=9, strict=True, solved=False)
     assert board.get_symbols() == '.................................................................................'
 
     # Test with default values for the keyword arguments.
-    board = basicsudoku.SudokuBoard(None, True, False)
+    board = basicsudoku.SudokuBoard(None, 9, True, False)
     assert board.get_symbols() == '.................................................................................'
+    assert board.size == 9
     assert board.strict == True
     #assert board.is_solved() == True
 
@@ -34,6 +35,10 @@ def test_ctor_symbols_arg():
     # Test the EMPTY_SPACE constant is '.'
     board = basicsudoku.SudokuBoard(symbols=basicsudoku.EMPTY_SPACE * 81)
     assert board.get_symbols() == '.' * 81
+
+    # Test for a 16x16 board.
+    board = basicsudoku.SudokuBoard(symbols=('.',) * 256)
+    assert board.get_symbols() == ('.',) * 256
 
     # Test with full, real symbols.
     board = basicsudoku.SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179')
@@ -55,13 +60,45 @@ def test_ctor_symbols_arg():
     with pytest.raises(basicsudoku.SudokuBoardException):
         basicsudoku.SudokuBoard(symbols='X................................................................................')
 
+    # Test too few symbols (using tuple for 16 x 16 board).
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        basicsudoku.SudokuBoard(symbols=('.', '.', '.'))
+
+    # Test too many symbols (using tuple for 16 x 16 board).
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        basicsudoku.SudokuBoard(symbols=('.') * 257)
+
+    # Test invalid symbols (using tuple for 16 x 16 board).
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        basicsudoku.SudokuBoard(symbols=('X') * 256)
+
+
+def test_ctor_size_arg():
+    basicsudoku.SudokuBoard()
+    basicsudoku.SudokuBoard(size=1)
+    basicsudoku.SudokuBoard(size=4)
+    basicsudoku.SudokuBoard(size=9)
+    basicsudoku.SudokuBoard(size=16)
+    basicsudoku.SudokuBoard(size=25)
+    basicsudoku.SudokuBoard(size=81)
+
+    # Test non-square number size.
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        basicsudoku.SudokuBoard(size=10)
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        basicsudoku.SudokuBoard(size=-10)
+
+    # Size must be int.
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        basicsudoku.SudokuBoard(size=9.0)
+
 
 def test_ctor_strict_arg():
     # Strict mode enabled.
     board = basicsudoku.SudokuBoard(strict=True)
     board[0, 0] = '1'
 
-    # Setting an invalid symbol should raise an exception.
     with pytest.raises(basicsudoku.SudokuBoardException):
         board[0, 1] = '1'
 
@@ -70,9 +107,8 @@ def test_ctor_strict_arg():
     board[0, 0] = '1'
     board[0, 1] = '1'
 
-    # Strict mode enabled raises an exception for invalid symbols argument.
-    with pytest.raises(basicsudoku.SudokuBoardException):
-        basicsudoku.SudokuBoard(symbols='1' * 81, strict=True)
+    # Strict mode enabled doesn't raise an exception for the symbols argument.
+    basicsudoku.SudokuBoard(symbols='1' * 81, strict=True)
 
 
 def test_ctor_solved_arg():
@@ -82,7 +118,7 @@ def test_ctor_solved_arg():
 
 
 def test_get_set():
-    board = basicsudoku.SudokuBoard()
+    board = basicsudoku.SudokuBoard(size=9)
     assert board[0, 0] == basicsudoku.EMPTY_SPACE
 
     board[0, 0] = 1
@@ -100,37 +136,51 @@ def test_get_set():
     with pytest.raises(basicsudoku.SudokuBoardException):
         board[0, 0] = '10'
 
+    board = basicsudoku.SudokuBoard(size=16)
+    board[0, 0] = '10'
+    assert board[0, 0] == '10'
+
 
 def test_is_valid_symbol():
-    board = basicsudoku.SudokuBoard()
+    board = basicsudoku.SudokuBoard(size=9)
     assert board.is_valid_symbol('1') == True
     assert board.is_valid_symbol('9') == True
     assert board.is_valid_symbol('16') == False
     assert board.is_valid_symbol('X') == False
 
+    board = basicsudoku.SudokuBoard(size=16)
+    assert board.is_valid_symbol('1') == True
+    assert board.is_valid_symbol('9') == True
+    assert board.is_valid_symbol('16') == True
+    assert board.is_valid_symbol('X') == False
+
 
 def test_is_complete_group():
-    board = basicsudoku.SudokuBoard()
+    board = basicsudoku.SudokuBoard(size=9)
     assert board.is_complete_group('123456789') == True # complete group
     assert board.is_complete_group('987654321') == True # complete group, different order
     assert board.is_complete_group('112345678') == False # repeated '1' symbol
     assert board.is_complete_group('12345678.') == False # empty space
 
-    # Passing a non-string for the group
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.is_complete_group(42)
+        assert board.is_complete_group(42) == True
 
     # Test too few symbols in group.
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.is_complete_group('123')
+        assert board.is_complete_group('123') == True
 
     # Test too many symbols in group.
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.is_complete_group('1234567890')
+        assert board.is_complete_group('1234567890') == True
+
+    # Test with a 16 x 16 board.
+    board = basicsudoku.SudokuBoard(size=16)
+    assert board.is_complete_group((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)) == True
+    assert board.is_complete_group((16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)) == True
 
 
 def test_is_valid_board():
-    board = basicsudoku.SudokuBoard(strict=False)
+    board = basicsudoku.SudokuBoard(size=9, strict=False)
     assert board.is_valid_board() == True
 
     board[0, 0] = '1'
@@ -158,7 +208,7 @@ def test_is_valid_board():
 
 
 def test_is_full():
-    board = basicsudoku.SudokuBoard()
+    board = basicsudoku.SudokuBoard(size=9)
     assert board.is_full() == False
 
     board[0, 0] = '1'
@@ -184,6 +234,9 @@ def test_is_solved():
     board = basicsudoku.SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179')
     assert board.is_solved() == True
 
+    board = basicsudoku.SudokuBoard(symbols='1234341223414123')
+    assert board.is_solved() == True
+
 
 def test_get_row():
     board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
@@ -200,6 +253,12 @@ def test_get_row():
     with pytest.raises(basicsudoku.SudokuBoardException):
         board.get_row(9)
 
+    board = basicsudoku.SudokuBoard(symbols='1234341223414123')
+    assert board.get_row(0) == ['1', '2', '3', '4']
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_row(4)
+
 
 def test_get_column():
     board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
@@ -215,6 +274,12 @@ def test_get_column():
 
     with pytest.raises(basicsudoku.SudokuBoardException):
         board.get_column(9)
+
+    board = basicsudoku.SudokuBoard(symbols='1234341223414123')
+    assert board.get_column(0) == ['1', '3', '2', '4']
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_column(4)
 
 
 def test_get_subgrid():
@@ -238,10 +303,22 @@ def test_get_subgrid():
     with pytest.raises(basicsudoku.SudokuBoardException):
         board.get_subgrid(3, 0)
 
+    board = basicsudoku.SudokuBoard(symbols='1234341223414123')
+    assert board.get_subgrid(0, 0) == ['1', '2', '3', '4']
+    assert board.get_subgrid(0, 1) == ['2', '3', '4', '1']
+    assert board.get_subgrid(1, 0) == ['3', '4', '1', '2']
+
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(2, 0)
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(0, 2)
+
 
 def test_get_symbols():
     # Test an empty board.
-    board = basicsudoku.SudokuBoard()
+    board = basicsudoku.SudokuBoard(size=9)
     assert board.get_symbols() == '.' * 81
 
     # Test a board with a few symbols set.
@@ -250,12 +327,24 @@ def test_get_symbols():
     board[8, 8] = '3'
     assert board.get_symbols() == '12.......' + ('.' * 63) + '........3'
 
+    # Test a 4x4 board.
+    board = basicsudoku.SudokuBoard(size=4)
+    assert board.get_symbols() == '.' * 16
+
+    # Test a 16x16 board.
+    board = basicsudoku.SudokuBoard(size=16)
+    assert board.get_symbols() == ('.',) * 256
+
     # Test a partially filled-in board.
     board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
     assert board.get_symbols() == '53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79'
 
+    # Test a completely filled-in board.
+    board = basicsudoku.SudokuBoard(symbols='1234341223414123')
+    assert board.get_symbols() == '1234341223414123'
+
     # Test a completely filled-in but invalid board.
-    board = basicsudoku.SudokuBoard(symbols='1' * 81, strict=False)
+    board = basicsudoku.SudokuBoard(symbols='1' * 81)
     assert board.get_symbols() == '1' * 81
 
 
@@ -286,10 +375,16 @@ def test_str():
 2 8 7 | 4 1 9 | 6 3 5
 3 4 5 | 2 8 6 | 1 7 9"""
 
+    s = str(basicsudoku.SudokuBoard(symbols='1234341223414123'))
+    assert s == '1 2 | 3 4\n3 4 | 1 2\n----+-----+----\n2 3 | 4 1\n4 1 | 2 3'
+
 
 def test_repr():
     r = repr(basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79'))
     assert r == "SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')"
+
+    r = repr(basicsudoku.SudokuBoard(symbols='1234341223414123'))
+    assert r == "SudokuBoard(symbols='1234341223414123')"
 
 
 if __name__ == '__main__':

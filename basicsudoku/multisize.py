@@ -60,19 +60,26 @@ Some definitions:
 """
 
 import doctest
+import math
 
 EMPTY_SPACE = '.'
-BOARD_SIZE = 9
-BOARD_SIZE_SQRT = 3
-FULL_BOARD_SIZE = 81
+
 
 class SudokuBoard(object):
-    def __init__(self, symbols=None, strict=True, solved=False):
+    def __init__(self, symbols=None, size=9, strict=True, solved=False):
         """TODO
 
-        * symbols - An optional string of 81 symbols to initially fill the board
-        with. EMPTY_SPACE, that is '.', can be a symbol. The symbols argument
-        doesn't have to produce a valid board.
+        * symbols - An optional sequence of symbols to initially fill the board
+        with. The symbols must be valid for the board size, and size^2 symbols
+        must be provided. EMPTY_SPACE can be a symbol. The symbols argument
+        doesn't have to produce a valid board. If the size is 1, 4, or 9, symbols
+        can be a string. For larger boards (where symbols are more than one
+        character long), symbols must be a non-string sequence. If symbols is
+        specified, it will override the size argument.
+
+        * size - An integer of the length & height of the board, which is 9
+        by default. The size must be a square number (i.e. 1, 4, 9, 16, 25, etc.)
+        The spaces will be increased to accomodate multidigit symbols.
 
         * strict - When strict is set to True, setting a space that causes the
         board to be invalid will raise a SudokuBoard exception.
@@ -81,41 +88,45 @@ class SudokuBoard(object):
         there are multiple solutions, a random one will be selected.
         """
 
+        if symbols is not None:
+            size = int(math.sqrt(len(symbols)))
+
+        if not isinstance(size, int) or size < 0 or math.sqrt(size) % 1 != 0:
+            raise SudokuBoardException('SudokuBoard size must be a square integer, such as 9, 16, 25, etc')
+        self.size = size
+        self.size_sqrt = int(math.sqrt(self.size))
+
         # When strict-mode is True, an exception will be raised if an illegal
         # symbol is placed on the board.
         self.strict = strict
-        self.clear_board()
+        self._board = [[EMPTY_SPACE] * self.size for i in range(self.size)] # create an empty board
 
         if symbols is not None:
             # Fill in the spaces with the provided symbols.
-            if not isinstance(symbols, str) or len(symbols) != FULL_BOARD_SIZE:
-                raise SudokuBoardException('symbols argument must be a string of 81 symbols')
+            if isinstance(symbols, str) and self.size > 9:
+                raise SudokuBoardException('symbols argument cannot be string if size is greater than 9, use a non-string sequence instead')
 
-            # Check that all the symbols are valid.
-            for symbol in symbols:
-                if not self.is_valid_symbol(symbol):
-                    raise SudokuBoardException('%r is not valid; symbols must be 1 to 9' % (repr(symbol)))
+            if len(symbols) != self.size ** 2:
+                raise SudokuBoardException('symbols argument must contain %s symbols' % (self.size ** 2))
 
-            # Place the symbol on the board.
             for i, symbol in enumerate(symbols):
-                self._board[i % BOARD_SIZE][i // BOARD_SIZE] = symbol
+                symbol = str(symbol)
+                if not self.is_valid_symbol(symbol):
+                    raise SudokuBoardException('%r is not a valid symbol for a %s x %s board' % (repr(symbol), self.size, self.size))
+                self._board[i % self.size][i // self.size] = symbol
 
-            # If the symbols argument results in an invalid board while strict mode is enabled, raise an exception.
-            if self.strict and not self.is_valid_board():
-                self.clear_board()
-                raise SudokuBoardException('symbols argument results in an invalid board while strict mode is enabled')
-
-        # Solve the board.
         if solved:
             self.solve()
 
 
-    def clear_board(self):
-        self._board = [[EMPTY_SPACE] * BOARD_SIZE for i in range(BOARD_SIZE)] # create an empty board
-
-
     def is_valid_symbol(self, symbol):
-        return len(symbol) == 1 and symbol in EMPTY_SPACE + '123456789'
+        if symbol == EMPTY_SPACE:
+            return True
+
+        if not str(symbol).isdigit():
+            return False
+
+        return symbol == EMPTY_SPACE or 1 <= int(symbol) <= self.size
 
 
     def is_complete_group(self, group):
@@ -125,22 +136,20 @@ class SudokuBoard(object):
         if EMPTY_SPACE in group:
             return False
 
-        return len(group) == BOARD_SIZE
+        return len(set(group)) == len(group)
 
 
     def is_valid_group(self, group):
-        # Check to make sure group is valid.
         try:
-            if len(group) != BOARD_SIZE:
-                raise SudokuBoardException('group must be a sequence with exactly 9 symbols, not %r' % (group,))
+            if len(group) != self.size:
+                raise SudokuBoardException('group must be a sequence with exactly %s items' % (self.size))
         except TypeError:
-            raise SudokuBoardException('group must be a sequence with exactly 9 symbols, not %r' % (group,))
+            raise SudokuBoardException('group must be a sequence with exactly %s items' % (self.size))
 
         for symbol in group:
             if not self.is_valid_symbol(symbol):
-                raise SudokuBoardException('group contains an invalid symbol: %r' % (symbol,))
+                raise SudokuBoardException('group contains an invalid symbol')
 
-        # Check for any repeat symbols in group, aside from EMPTY_SPACE.
         symbolSet = set()
         for symbol in group:
             if symbol != EMPTY_SPACE and symbol in symbolSet:
@@ -156,18 +165,18 @@ class SudokuBoard(object):
         spaces."""
 
         # Check each of the columns for validity.
-        for x in range(BOARD_SIZE):
+        for x in range(self.size):
             if not self.is_valid_group(self.get_column(x)):
                 return False
 
         # Check each of the rows for validity.
-        for y in range(BOARD_SIZE):
+        for y in range(self.size):
             if not self.is_valid_group(self.get_row(y)):
                 return False
 
         # Check each of the subgrids for validity.
-        for top in range(BOARD_SIZE_SQRT):
-            for left in range(BOARD_SIZE_SQRT):
+        for top in range(self.size_sqrt):
+            for left in range(self.size_sqrt):
                 if not self.is_valid_group(self.get_subgrid(left, top)):
                     return False
 
@@ -175,8 +184,8 @@ class SudokuBoard(object):
 
 
     def is_full(self):
-        for x in range(BOARD_SIZE):
-            for y in range(BOARD_SIZE):
+        for x in range(self.size):
+            for y in range(self.size):
                 if self._board[x][y] == EMPTY_SPACE:
                     return False
         return True
@@ -192,9 +201,9 @@ class SudokuBoard(object):
             raise SudokuBoardException('key must be a tuple of two integers')
 
         x, y = key
-        if x < 0 or x >= BOARD_SIZE:
+        if x < 0 or x >= self.size:
             raise SudokuBoardException('x index (%s) is out of range' % (x))
-        if y < 0 or y >= BOARD_SIZE:
+        if y < 0 or y >= self.size:
             raise SudokuBoardException('y index (%s) is out of range' % (y))
 
         return self._board[x][y]
@@ -205,14 +214,14 @@ class SudokuBoard(object):
             raise SudokuBoardException('key must be a tuple of two integers')
 
         x, y = key
-        if x < 0 or x >= BOARD_SIZE:
+        if x < 0 or x >= self.size:
             raise SudokuBoardException('x index (%s) is out of range' % (x))
-        if y < 0 or y >= BOARD_SIZE:
+        if y < 0 or y >= self.size:
             raise SudokuBoardException('y index (%s) is out of range' % (y))
 
         value = str(value) # value can be a string or an int
         if not self.is_valid_symbol(value):
-            raise SudokuBoardException('%r is not a valid symbol, symbols must be int or str between 1 and 9' % (value))
+            raise SudokuBoardException('%r is not a valid symbol, symbols must be int or str between 1 and %s' % (value, self.size - 1))
 
         old_value = self._board[x][y]
         self._board[x][y] = value
@@ -224,31 +233,31 @@ class SudokuBoard(object):
 
 
     def get_row(self, row):
-        if not isinstance(row, int) or row < 0 or row >= BOARD_SIZE:
-            raise SudokuBoardException('row must be an int between 0 and 8')
+        if not isinstance(row, int) or row < 0 or row >= self.size:
+            raise SudokuBoardException('row must be an int between 0 and %s' % (self.size - 1))
 
-        return [self._board[x][row] for x in range(BOARD_SIZE)]
+        return [self._board[x][row] for x in range(self.size)]
 
 
     def get_column(self, column):
-        if not isinstance(column, int) or column < 0 or column >= BOARD_SIZE:
-            raise SudokuBoardException('column must be an int between 0 and 8')
+        if not isinstance(column, int) or column < 0 or column >= self.size:
+            raise SudokuBoardException('column must be an int between 0 and %s' % (self.size - 1))
 
-        return [self._board[column][y] for y in range(BOARD_SIZE)]
+        return [self._board[column][y] for y in range(self.size)]
 
 
     def get_subgrid(self, subgrid_x, subgrid_y):
-        if not isinstance(subgrid_x, int) or subgrid_x < 0 or subgrid_x >= BOARD_SIZE_SQRT:
-            raise SudokuBoardException('subgrid_x must be an int between 0 and 2')
+        if not isinstance(subgrid_x, int) or subgrid_x < 0 or subgrid_x >= self.size_sqrt:
+            raise SudokuBoardException('subgrid_x must be an int between 0 and %s' % (self.size_sqrt - 1))
 
-        if not isinstance(subgrid_y, int) or subgrid_y < 0 or subgrid_y >= BOARD_SIZE_SQRT:
-            raise SudokuBoardException('subgrid_y must be an int between 0 and 2')
+        if not isinstance(subgrid_y, int) or subgrid_y < 0 or subgrid_y >= self.size_sqrt:
+            raise SudokuBoardException('subgrid_y must be an int between 0 and %s' % (self.size_sqrt - 1))
 
         subgrid = []
-        start_x = subgrid_x * BOARD_SIZE_SQRT
-        start_y = subgrid_y * BOARD_SIZE_SQRT
-        for y in range(start_y, start_y + BOARD_SIZE_SQRT):
-            for x in range(start_x, start_x + BOARD_SIZE_SQRT):
+        start_x = subgrid_x * self.size_sqrt
+        start_y = subgrid_y * self.size_sqrt
+        for y in range(start_y, start_y + self.size_sqrt):
+            for x in range(start_x, start_x + self.size_sqrt):
                 subgrid.append(self._board[x][y])
 
         return subgrid
@@ -259,11 +268,16 @@ class SudokuBoard(object):
 
         TODO"""
         symbols = []
-        for y in range(BOARD_SIZE):
-            for x in range(BOARD_SIZE):
+        for y in range(self.size):
+            for x in range(self.size):
                 symbols.append(self._board[x][y])
 
-        return ''.join(symbols)
+        if self.size <= 9:
+            # Return the symbols as a string.
+            return ''.join(symbols)
+        else:
+            # Otherwise, since the symbols can be multiple-digits long, return a tuple.
+            return tuple(symbols)
 
 
     def __str__(self):
@@ -282,20 +296,32 @@ class SudokuBoard(object):
         5 . . | 2 . . | . . .
         1 . 4 | . . . | . . .
         """
+        symbol_length = len(str(self.size_sqrt))
+
         all_rows = []
 
-        for y in range(BOARD_SIZE):
-            row = self.get_row(y)
+        for y in range(self.size):
+            row = list(self.get_row(y))
 
             # Add vertical separators to the row.
-            row.insert(3, '|')
-            row.insert(7, '|')
+            for i in range(self.size - 1 - self.size_sqrt, -1, -self.size_sqrt):
+                row.insert(i + 1, '|')
+
+            # Go through the row and make sure it is properly spaced if
+            # symbols can have multiple digits.
+            if self.size > 9:
+                for i, symbol in enumerate(row):
+                    row[i] = symbol.rjust(symbol_length)
 
             all_rows.append(' '.join(row))
 
             # Add a horizontal separator, if needed.
-            if y == 2 or y == 5:
-                all_rows.append('------+-------+------')
+            if (y + 1) % self.size_sqrt == 0 and y != (self.size - 1):
+                all_rows.append('-' * (symbol_length * self.size_sqrt + self.size_sqrt) +
+                                '+' +
+                                '-' * (symbol_length * self.size_sqrt + self.size_sqrt + 1) +
+                                '+' +
+                                '-' * (symbol_length * self.size_sqrt + self.size_sqrt))
 
         return '\n'.join(all_rows)
 
