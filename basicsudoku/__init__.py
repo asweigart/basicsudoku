@@ -75,6 +75,9 @@ class SudokuBoard(object):
         Symbols can be set using a tuple of two integer indexes (0-8 inclusive)
         for the position, while the symbol is an int or str between 1 and 9.
 
+        No matter if set to an int or str, symbols are always stored and
+        returned as strings.
+
         Empty spaces on the board are set to EMPTY_SPACE, which is the '.'
         string.
 
@@ -117,27 +120,66 @@ class SudokuBoard(object):
         if solved:
             self.solve()
 
+
     @property
     def strict(self):
         return self._strict
+
 
     @strict.setter
     def strict(self, value):
         if not isinstance(value, bool):
             raise SudokuBoardException('strict must be set to a bool value')
+
+        # Strict mode raises an exception if the board is in an invalid state,
+        # so raise an acception if the board is currently invalid and strict
+        # mode is enabled.
+        if value and not self.is_valid_board():
+            raise SudokuBoardException('strict mode enabled while board was in an invalid state')
         self._strict = value
 
 
     def clear_board(self):
-        """Sets all spaces on the board to EMPTY_SPACE."""
+        """Sets all spaces on the board to EMPTY_SPACE.
+        >>> board = SudokuBoard(symbols='4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
+        >>> print(board)
+        4 . . | . . . | 8 . 5
+        . 3 . | . . . | . . .
+        . . . | 7 . . | . . .
+        ------+-------+------
+        . 2 . | . . . | . 6 .
+        . . . | . 8 . | 4 . .
+        . . . | . 1 . | . . .
+        ------+-------+------
+        . . . | 6 . 3 | . 7 .
+        5 . . | 2 . . | . . .
+        1 . 4 | . . . | . . .
+        >>> board.clear_board()
+        >>> print(board)
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        ------+-------+------
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        ------+-------+------
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        """
         self._board = [[EMPTY_SPACE] * BOARD_LENGTH for i in range(BOARD_LENGTH)] # create an empty board
 
 
     def is_valid_symbol(self, symbol):
+        """Returns True if symbol is a str between 1 and 9, or is EMPTY_SPACE.
+        Otherwise returns False."""
         return len(symbol) == 1 and symbol in EMPTY_SPACE + '123456789'
 
 
     def is_complete_group(self, group):
+        """Returns True if group is a str of all 9 symbols with no repeats.
+        Otherwise returns False."""
         if not self.is_valid_group(group):
             return False
 
@@ -148,6 +190,9 @@ class SudokuBoard(object):
 
 
     def is_valid_group(self, group):
+        """Returns True if group is a str of 9 symbols, which can include
+        EMPTY_SPACE but doesn't have repeated symbols. Otherwise, returns
+        False."""
         # Check to make sure group is valid.
         try:
             if len(group) != BOARD_LENGTH:
@@ -171,8 +216,8 @@ class SudokuBoard(object):
 
     def is_valid_board(self):
         """Returns True if the board is in a valid state (even if incomplete),
-        otherwise return False if the board has invalid symbols set to any of the
-        spaces."""
+        otherwise return False if the board has repeated symbols set to any of
+        the rows, columns, or subgrids."""
 
         # Check each of the columns for validity.
         for x in range(BOARD_LENGTH):
@@ -204,7 +249,8 @@ class SudokuBoard(object):
 
 
     def is_solved(self):
-        """Returns True if the board is currently solved, otherwise returns False."""
+        """Returns True if the board is currently solved, otherwise returns
+        False."""
         return self.is_full() and self.is_valid_board()
 
 
@@ -331,10 +377,11 @@ class SudokuBoard(object):
 
     def __copy__(self):
         """Returns a copy of this object."""
-        return SudokuBoard(symbols=self.get_symbols(), strict=self._strict)
+        board_copy = SudokuBoard(symbols=self.get_symbols(), strict=self._strict)
+        return board_copy
 
 
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo):
         """Returns a deep copy of this object (which is the same as a shallow
         copy for this class)."""
         return self.__copy__()
