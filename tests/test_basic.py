@@ -15,15 +15,15 @@ SYMBOLS_FOR_A_FULL_BOARD    = '5346789126721953481983425678597614234268537917139
 def test_ctor():
     # Test the basic constructor.
     board = basicsudoku.SudokuBoard()
-    assert board.get_symbols() == SYMBOLS_FOR_AN_EMPTY_BOARD
+    assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
 
     # Test with default values for the keyword arguments.
     board = basicsudoku.SudokuBoard(symbols=None, strict=True, solved=False)
-    assert board.get_symbols() == SYMBOLS_FOR_AN_EMPTY_BOARD
+    assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
 
     # Test with default values for the keyword arguments.
     board = basicsudoku.SudokuBoard(None, True, False)
-    assert board.get_symbols() == SYMBOLS_FOR_AN_EMPTY_BOARD
+    assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
     assert board.strict == True
     #assert board.is_solved() == True
 
@@ -31,19 +31,19 @@ def test_ctor():
 def test_ctor_symbols_arg():
     # Test the `symbols` keyword argument.
     board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_AN_EMPTY_BOARD)
-    assert board.get_symbols() == SYMBOLS_FOR_AN_EMPTY_BOARD
+    assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
 
     # Test the EMPTY_SPACE constant is '.'
     board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_AN_EMPTY_BOARD)
-    assert board.get_symbols() == SYMBOLS_FOR_AN_EMPTY_BOARD
+    assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
 
     # Test with full, real symbols.
     board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_FULL_BOARD)
-    assert board.get_symbols() == SYMBOLS_FOR_A_FULL_BOARD
+    assert board.symbols == SYMBOLS_FOR_A_FULL_BOARD
 
     # Test with partial, real symbols.
     board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD)
-    assert board.get_symbols() == SYMBOLS_FOR_A_PARTIAL_BOARD
+    assert board.symbols == SYMBOLS_FOR_A_PARTIAL_BOARD
 
     # Test too few symbols.
     with pytest.raises(basicsudoku.SudokuBoardException):
@@ -80,7 +80,7 @@ def test_ctor_strict_arg():
 def test_ctor_solved_arg():
     pass
     #board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD, solved=True)
-    #assert board.get_symbols() == SYMBOLS_FOR_A_FULL_BOARD
+    #assert board.symbols == SYMBOLS_FOR_A_FULL_BOARD
 
 
 def test_get_set():
@@ -241,24 +241,38 @@ def test_get_subgrid():
         board.get_subgrid(3, 0)
 
 
-def test_get_symbols():
+def test_symbols_property():
     # Test an empty board.
     board = basicsudoku.SudokuBoard()
-    assert board.get_symbols() == '.' * 81
+    assert board.symbols == '.' * 81
 
     # Test a board with a few symbols set.
     board[0, 0] = '1'
     board[1, 0] = '2'
     board[8, 8] = '3'
-    assert board.get_symbols() == '12.......' + ('.' * 63) + '........3'
+    assert board.symbols == '12.......' + ('.' * 63) + '........3'
 
     # Test a partially filled-in board.
     board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD)
-    assert board.get_symbols() == SYMBOLS_FOR_A_PARTIAL_BOARD
+    assert board.symbols == SYMBOLS_FOR_A_PARTIAL_BOARD
 
     # Test a completely filled-in but invalid board.
     board = basicsudoku.SudokuBoard(symbols='1' * 81, strict=False)
-    assert board.get_symbols() == '1' * 81
+    assert board.symbols == '1' * 81
+
+    # Test setting the symbols
+    board.symbols = SYMBOLS_FOR_A_PARTIAL_BOARD
+    assert board.symbols == SYMBOLS_FOR_A_PARTIAL_BOARD
+
+    # Test validation for setting symbols
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.symbols = '1'
+
+    # Test setting symbols to an invalid board in strict mode.
+    board = basicsudoku.SudokuBoard(strict=True)
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.symbols = '1' * 81
+
 
 
 def test_str():
@@ -307,7 +321,7 @@ def test_copy_method():
     board_copy = board.copy()
 
     # Ensure that the boards have the same symbols.
-    assert board_copy.get_symbols() == SYMBOLS_FOR_A_FULL_BOARD
+    assert board_copy.symbols == SYMBOLS_FOR_A_FULL_BOARD
     assert board_copy.strict == False
 
     # Ensure that you can change the symbols on the boards independently.
@@ -328,7 +342,7 @@ def test_shallow_copy():
     board_copy = copy.copy(board)
 
     # Ensure that the boards have the same symbols.
-    assert board_copy.get_symbols() == SYMBOLS_FOR_A_FULL_BOARD
+    assert board_copy.symbols == SYMBOLS_FOR_A_FULL_BOARD
     assert board_copy.strict == False
 
     # Ensure that you can change the symbols on the boards independently.
@@ -349,7 +363,7 @@ def test_deep_copy():
     board_copy = copy.deepcopy(board)
 
     # Ensure that the boards have the same symbols.
-    assert board_copy.get_symbols() == SYMBOLS_FOR_A_FULL_BOARD
+    assert board_copy.symbols == SYMBOLS_FOR_A_FULL_BOARD
     assert board_copy.strict == False
 
     # Ensure that you can change the symbols on the boards independently.

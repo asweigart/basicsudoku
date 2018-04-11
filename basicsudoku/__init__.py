@@ -98,23 +98,7 @@ class SudokuBoard(object):
         self.clear_board()
 
         if symbols is not None:
-            # Fill in the spaces with the provided symbols.
-            if not isinstance(symbols, str) or len(symbols) != FULL_BOARD_SIZE:
-                raise SudokuBoardException('symbols argument must be a string of 81 symbols')
-
-            # Check that all the symbols are valid.
-            for symbol in symbols:
-                if not self.is_valid_symbol(symbol):
-                    raise SudokuBoardException('%r is not valid; symbols must be 1 to 9' % (repr(symbol)))
-
-            # Place the symbol on the board.
-            for i, symbol in enumerate(symbols):
-                self._board[i % BOARD_LENGTH][i // BOARD_LENGTH] = symbol
-
-            # If the symbols argument results in an invalid board while strict mode is enabled, raise an exception.
-            if self._strict and not self.is_valid_board():
-                self.clear_board()
-                raise SudokuBoardException('symbols argument results in an invalid board while strict mode is enabled')
+            self.symbols = symbols
 
         # Solve the board, if needed.
         if solved:
@@ -137,6 +121,40 @@ class SudokuBoard(object):
         if value and not self.is_valid_board():
             raise SudokuBoardException('strict mode enabled while board was in an invalid state')
         self._strict = value
+
+
+    @property
+    def symbols(self):
+        """Returns a string or tuple of all symbols on the board.
+
+        TODO"""
+        all_symbols = []
+        for y in range(BOARD_LENGTH):
+            for x in range(BOARD_LENGTH):
+                all_symbols.append(self._board[x][y])
+
+        return ''.join(all_symbols)
+
+
+    @symbols.setter
+    def symbols(self, value):
+        # Fill in the spaces with the provided symbols.
+        if not isinstance(value, str) or len(value) != FULL_BOARD_SIZE:
+            raise SudokuBoardException('symbols must be a string of 81 symbols')
+
+        # Check that all the symbols are valid.
+        for symbol in value:
+            if not self.is_valid_symbol(symbol):
+                raise SudokuBoardException('%r is not valid; symbols must be 1 to 9' % (repr(symbol)))
+
+        # Place the symbol on the board.
+        for i, symbol in enumerate(value):
+            self._board[i % BOARD_LENGTH][i // BOARD_LENGTH] = symbol
+
+        # If the results in an invalid board while strict mode is enabled, raise an exception.
+        if self._strict and not self.is_valid_board():
+            self.clear_board()
+            raise SudokuBoardException('symbols results in an invalid board while strict mode is enabled')
 
 
     def clear_board(self):
@@ -173,13 +191,42 @@ class SudokuBoard(object):
 
     def is_valid_symbol(self, symbol):
         """Returns True if symbol is a str between 1 and 9, or is EMPTY_SPACE.
-        Otherwise returns False."""
+        Otherwise returns False.
+
+        >>> board = SudokuBoard()
+        >>> board.is_valid_symbol(1)
+        True
+        >>> board.is_valid_symbol('1')
+        True
+        >>> board.is_valid_symbol('9')
+        True
+        >>> board.is_valid_symbol('A')
+        False
+        >>> board.is_valid_symbol('01')
+        False
+        """
+        symbol = str(symbol)
         return len(symbol) == 1 and symbol in EMPTY_SPACE + '123456789'
 
 
     def is_complete_group(self, group):
         """Returns True if group is a str of all 9 symbols with no repeats.
-        Otherwise returns False."""
+        Otherwise returns False.
+
+        >>> board = SudokuBoard()
+        >>> board.is_complete_group('123456789')
+        True
+        >>> board.is_complete_group('987654321')
+        True
+        >>> board.is_complete_group('192837465')
+        True
+        >>> board.is_complete_group('111111111')
+        False
+        >>> board.is_complete_group('12345678.')
+        False
+        >>> board.is_complete_group('.........')
+        False
+        """
         if not self.is_valid_group(group):
             return False
 
@@ -192,7 +239,23 @@ class SudokuBoard(object):
     def is_valid_group(self, group):
         """Returns True if group is a str of 9 symbols, which can include
         EMPTY_SPACE but doesn't have repeated symbols. Otherwise, returns
-        False."""
+        False.
+
+        >>> board = SudokuBoard()
+        >>> board.is_valid_group('123456789')
+        True
+        >>> board.is_valid_group('987654321')
+        True
+        >>> board.is_valid_group('192837465')
+        True
+        >>> board.is_valid_group('111111111')
+        False
+        >>> board.is_valid_group('12345678.')
+        True
+        >>> board.is_valid_group('.........')
+        True
+        """
+
         # Check to make sure group is valid.
         try:
             if len(group) != BOARD_LENGTH:
@@ -217,7 +280,13 @@ class SudokuBoard(object):
     def is_valid_board(self):
         """Returns True if the board is in a valid state (even if incomplete),
         otherwise return False if the board has repeated symbols set to any of
-        the rows, columns, or subgrids."""
+        the rows, columns, or subgrids.
+
+        >>> board = SudokuBoard()
+        >>> board.is_valid_board()
+        True
+        >>>
+        """
 
         # Check each of the columns for validity.
         for x in range(BOARD_LENGTH):
@@ -328,18 +397,6 @@ class SudokuBoard(object):
         return subgrid
 
 
-    def get_symbols(self):
-        """Returns a string or tuple of all symbols on the board.
-
-        TODO"""
-        symbols = []
-        for y in range(BOARD_LENGTH):
-            for x in range(BOARD_LENGTH):
-                symbols.append(self._board[x][y])
-
-        return ''.join(symbols)
-
-
     def __str__(self):
         """Returns a string representation of the board. There are lines between
         the subgrids but no border. It looks something like:
@@ -379,7 +436,7 @@ class SudokuBoard(object):
 
 
     def __repr__(self):
-        return "SudokuBoard(symbols=%r)" % (self.get_symbols(),)
+        return "SudokuBoard(symbols=%r)" % (self.symbols,)
 
 
     def solve(self):
@@ -388,7 +445,7 @@ class SudokuBoard(object):
 
     def __copy__(self):
         """Returns a copy of this object."""
-        board_copy = SudokuBoard(symbols=self.get_symbols(), strict=self._strict)
+        board_copy = SudokuBoard(symbols=self.symbols, strict=self._strict)
         return board_copy
 
 
