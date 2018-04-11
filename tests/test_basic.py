@@ -117,12 +117,28 @@ def test_ctor_solved_arg():
     #assert board.get_symbols() == '534678912672195348198342567859761423426853791713924856961537284287419635345286179'
 
 
-def test_get():
-    pass
+def test_get_set():
+    board = basicsudoku.SudokuBoard(size=9)
+    assert board[0, 0] == basicsudoku.EMPTY_SPACE
 
+    board[0, 0] = 1
+    assert board[0, 0] == '1'
 
-def test_set():
-    pass
+    board[0, 0] = '1'
+    assert board[0, 0] == '1'
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[9, 0] = '1'
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[0, 9] = '1'
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[0, 0] = '10'
+
+    board = basicsudoku.SudokuBoard(size=16)
+    board[0, 0] = '10'
+    assert board[0, 0] == '10'
 
 
 def test_is_valid_symbol():
@@ -137,6 +153,7 @@ def test_is_valid_symbol():
     assert board.is_valid_symbol('9') == True
     assert board.is_valid_symbol('16') == True
     assert board.is_valid_symbol('X') == False
+
 
 def test_is_complete_group():
     board = basicsudoku.SudokuBoard(size=9)
@@ -266,21 +283,108 @@ def test_get_column():
 
 
 def test_get_subgrid():
-    pass
+    board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+    assert board.get_subgrid(0, 0) == ['5', '3', '.', '6', '.', '.', '.', '9', '8']
+    assert board.get_subgrid(0, 1) == ['8', '.', '.', '4', '.', '.', '7', '.', '.']
+    assert board.get_subgrid(1, 0) == ['.', '7', '.', '1', '9', '5', '.', '.', '.']
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(0.0 , 0)
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(0, 0.0)
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(-1 , 0)
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(0, 3)
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(3, 0)
+
+    board = basicsudoku.SudokuBoard(symbols='1234341223414123')
+    assert board.get_subgrid(0, 0) == ['1', '2', '3', '4']
+    assert board.get_subgrid(0, 1) == ['2', '3', '4', '1']
+    assert board.get_subgrid(1, 0) == ['3', '4', '1', '2']
+
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(2, 0)
+
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.get_subgrid(0, 2)
 
 
 def test_get_symbols():
-    pass
+    # Test an empty board.
+    board = basicsudoku.SudokuBoard(size=9)
+    assert board.get_symbols() == '.' * 81
+
+    # Test a board with a few symbols set.
+    board[0, 0] = '1'
+    board[1, 0] = '2'
+    board[8, 8] = '3'
+    assert board.get_symbols() == '12.......' + ('.' * 63) + '........3'
+
+    # Test a 4x4 board.
+    board = basicsudoku.SudokuBoard(size=4)
+    assert board.get_symbols() == '.' * 16
+
+    # Test a 16x16 board.
+    board = basicsudoku.SudokuBoard(size=16)
+    assert board.get_symbols() == ('.',) * 256
+
+    # Test a partially filled-in board.
+    board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+    assert board.get_symbols() == '53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79'
+
+    # Test a completely filled-in board.
+    board = basicsudoku.SudokuBoard(symbols='1234341223414123')
+    assert board.get_symbols() == '1234341223414123'
+
+    # Test a completely filled-in but invalid board.
+    board = basicsudoku.SudokuBoard(symbols='1' * 81)
+    assert board.get_symbols() == '1' * 81
 
 
 def test_str():
-    pass
+    s = str(basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79'))
+    assert s == """5 3 . | . 7 . | . . .
+6 . . | 1 9 5 | . . .
+. 9 8 | . . . | . 6 .
+------+-------+------
+8 . . | . 6 . | . . 3
+4 . . | 8 . 3 | . . 1
+7 . . | . 2 . | . . 6
+------+-------+------
+. 6 . | . . . | 2 8 .
+. . . | 4 1 9 | . . 5
+. . . | . 8 . | . 7 9"""
+
+    s = str(basicsudoku.SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179'))
+    assert s == """5 3 4 | 6 7 8 | 9 1 2
+6 7 2 | 1 9 5 | 3 4 8
+1 9 8 | 3 4 2 | 5 6 7
+------+-------+------
+8 5 9 | 7 6 1 | 4 2 3
+4 2 6 | 8 5 3 | 7 9 1
+7 1 3 | 9 2 4 | 8 5 6
+------+-------+------
+9 6 1 | 5 3 7 | 2 8 4
+2 8 7 | 4 1 9 | 6 3 5
+3 4 5 | 2 8 6 | 1 7 9"""
+
+    s = str(basicsudoku.SudokuBoard(symbols='1234341223414123'))
+    assert s == '1 2 | 3 4\n3 4 | 1 2\n----+-----+----\n2 3 | 4 1\n4 1 | 2 3'
 
 
 def test_repr():
-    pass
+    r = repr(basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79'))
+    assert r == "SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')"
 
-
+    r = repr(basicsudoku.SudokuBoard(symbols='1234341223414123'))
+    assert r == "SudokuBoard(symbols='1234341223414123')"
 
 
 if __name__ == '__main__':

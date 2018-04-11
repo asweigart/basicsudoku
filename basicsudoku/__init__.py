@@ -317,11 +317,11 @@ class SudokuBoard(object):
 
             # Add a horizontal separator, if needed.
             if (y + 1) % self.size_sqrt == 0 and y != (self.size - 1):
-                all_rows.append('-' * (symbol_length * self.size_sqrt + 3) +
+                all_rows.append('-' * (symbol_length * self.size_sqrt + self.size_sqrt) +
                                 '+' +
-                                '-' * (symbol_length * self.size_sqrt + 4) +
+                                '-' * (symbol_length * self.size_sqrt + self.size_sqrt + 1) +
                                 '+' +
-                                '-' * (symbol_length * self.size_sqrt + 3))
+                                '-' * (symbol_length * self.size_sqrt + self.size_sqrt))
 
         return '\n'.join(all_rows)
 
