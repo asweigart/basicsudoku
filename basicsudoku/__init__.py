@@ -63,8 +63,8 @@ import doctest
 
 EMPTY_SPACE = '.'
 BOARD_LENGTH = 9
-BOARD_LENGTH_SQRT = 3
-FULL_BOARD_SIZE = 81
+BOARD_LENGTH_SQRT = 3 # square root of BOARD_LENGTH
+FULL_BOARD_SIZE = BOARD_LENGTH * BOARD_LENGTH
 
 class SudokuBoard(object):
     def __init__(self, symbols=None, strict=True, solved=False):
@@ -255,7 +255,14 @@ class SudokuBoard(object):
 
 
     def __getitem__(self, key):
-        if not isinstance(key , tuple) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
+        # If the key is a single integer (used for the iterable protocol)
+        if isinstance(key, int):
+            if key < 0 or key >= FULL_BOARD_SIZE:
+                raise SudokuBoardException('key is out of range, must be between 0 and 80, inclusive')
+            return self._board[key % BOARD_LENGTH][key // BOARD_LENGTH]
+
+        # Otherwise, if the key is a tuple or list of two ints.
+        if not isinstance(key , (tuple, list)) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
             raise SudokuBoardException('key must be a tuple of two integers')
 
         x, y = key
@@ -322,7 +329,7 @@ class SudokuBoard(object):
 
 
     def get_symbols(self):
-        """Returns a string or tuple of all size^2 symbols on the board.
+        """Returns a string or tuple of all symbols on the board.
 
         TODO"""
         symbols = []
@@ -337,17 +344,21 @@ class SudokuBoard(object):
         """Returns a string representation of the board. There are lines between
         the subgrids but no border. It looks something like:
 
-        4 . . | . . . | 8 . 5
-        . 3 . | . . . | . . .
-        . . . | 7 . . | . . .
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> str(board)
+        '5 3 . | . 7 . | . . .\\n6 . . | 1 9 5 | . . .\\n. 9 8 | . . . | . 6 .\\n------+-------+------\\n8 . . | . 6 . | . . 3\\n4 . . | 8 . 3 | . . 1\\n7 . . | . 2 . | . . 6\\n------+-------+------\\n. 6 . | . . . | 2 8 .\\n. . . | 4 1 9 | . . 5\\n. . . | . 8 . | . 7 9'
+        >>> print(board)
+        5 3 . | . 7 . | . . .
+        6 . . | 1 9 5 | . . .
+        . 9 8 | . . . | . 6 .
         ------+-------+------
-        . 2 . | . . . | . 6 .
-        . . . | . 8 . | 4 . .
-        . . . | . 1 . | . . .
+        8 . . | . 6 . | . . 3
+        4 . . | 8 . 3 | . . 1
+        7 . . | . 2 . | . . 6
         ------+-------+------
-        . . . | 6 . 3 | . 7 .
-        5 . . | 2 . . | . . .
-        1 . 4 | . . . | . . .
+        . 6 . | . . . | 2 8 .
+        . . . | 4 1 9 | . . 5
+        . . . | . 8 . | . 7 9
         """
         all_rows = []
 
@@ -390,6 +401,34 @@ class SudokuBoard(object):
     def copy(self):
         """Returns a copy of this object."""
         return self.__copy__()
+
+
+    def __len__(self):
+        return FULL_BOARD_SIZE
+
+
+    def __iter__(self):
+        return SudokuBoardIterator(self)
+
+
+class SudokuBoardIterator(object):
+    __slots__ = ('i', 'sudoku_board')
+
+    def __init__(self, sudoku_board):
+        self.i = 0
+        self.sudoku_board = sudoku_board
+
+
+    def __next__(self):
+        if self.i == FULL_BOARD_SIZE:
+            raise StopIteration
+
+        symbol = self.sudoku_board._board[self.i % BOARD_LENGTH][self.i // BOARD_LENGTH]
+        self.i += 1
+        return symbol
+
+    def __iter__(self):
+        return self
 
 
 class SudokuBoardException(Exception):

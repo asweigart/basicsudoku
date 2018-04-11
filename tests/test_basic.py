@@ -393,7 +393,31 @@ def test_strict_property():
         board.strict = True
 
 
+def test_len():
+    full_board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_FULL_BOARD)
+    assert len(full_board) == 81
 
+    partial_board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD)
+    assert len(partial_board) == 81
+
+
+def test_iter():
+    board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_FULL_BOARD)
+
+    # Test iterators
+    it1 = iter(board)
+    it2 = iter(board)
+    assert next(it1) == '5'
+    assert next(it1) == '3'
+    assert next(it2) == '5'
+    assert next(it2) == '3'
+    assert next(it2) == '4'
+    assert next(it2) == '6'
+    assert next(it1) == '4'
+    assert next(it1) == '6'
+
+    # Test list()
+    assert list(board) == list(SYMBOLS_FOR_A_FULL_BOARD)
 
 
 if __name__ == '__main__':
