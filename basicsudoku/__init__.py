@@ -331,7 +331,7 @@ class SudokuBoard(object):
 
     def __copy__(self):
         """Returns a copy of this object."""
-        return SudokuBoard(symbols=self.get_symbols())
+        return SudokuBoard(symbols=self.get_symbols(), strict=self._strict)
 
 
     def __deepcopy__(self):
