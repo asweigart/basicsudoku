@@ -453,25 +453,34 @@ class SudokuBoard(object):
         . . . | . . . | . . .
         . . . | . . . | . . 9
         """
+        # Check that the value is a valid symbol.
+        if not self.is_valid_symbol(value):
+            raise SudokuBoardException('%r is not a valid symbol, symbols must be int or str between 1 and 9' % (value))
+        value = str(value)
 
-        if not isinstance(key , tuple) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
+        # If the key is a single integer (used for the iterable protocol)
+        if isinstance(key, int):
+            if key < 0 or key >= FULL_BOARD_SIZE:
+                raise SudokuBoardException('key is out of range, must be between 0 and 80, inclusive')
+            key = (key % BOARD_LENGTH, key // BOARD_LENGTH)
+
+        elif not isinstance(key , tuple) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
             raise SudokuBoardException('key must be a tuple of two integers')
 
+        # Separate the x and y coordinates from key.
         x, y = key
         if x < 0 or x >= BOARD_LENGTH:
             raise SudokuBoardException('x index (%s) is out of range' % (x))
         if y < 0 or y >= BOARD_LENGTH:
             raise SudokuBoardException('y index (%s) is out of range' % (y))
 
-        value = str(value) # value can be a string or an int
-        if not self.is_valid_symbol(value):
-            raise SudokuBoardException('%r is not a valid symbol, symbols must be int or str between 1 and 9' % (value))
-
+        # Set the space to the new symbol.
         old_value = self._board[x][y]
         self._board[x][y] = value
 
+        # Do a board strictness check.
         if self._strict:
-            if self.is_valid_board() == False:
+            if not self.is_valid_board():
                 self._board[x][y] = old_value # restore old value
                 raise SudokuBoardException('strict mode is enabled, and this symbol assignment causes the board to become invalid')
 
@@ -622,7 +631,7 @@ class SudokuBoard(object):
 
         >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
         >>> repr(board)
-        "SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')"
+        "SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79', strict=True)"
         """
         return "SudokuBoard(symbols=%r, strict=%r)" % (self.symbols, self._strict)
 

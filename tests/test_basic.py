@@ -276,6 +276,19 @@ def test_symbols_property():
 
 
 def test_str():
+    s = str(basicsudoku.SudokuBoard())
+    assert s == """. . . | . . . | . . .
+. . . | . . . | . . .
+. . . | . . . | . . .
+------+-------+------
+. . . | . . . | . . .
+. . . | . . . | . . .
+. . . | . . . | . . .
+------+-------+------
+. . . | . . . | . . .
+. . . | . . . | . . .
+. . . | . . . | . . ."""
+
     s = str(basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD))
     assert s == """5 3 . | . 7 . | . . .
 6 . . | 1 9 5 | . . .
@@ -305,7 +318,7 @@ def test_str():
 
 def test_repr():
     r = repr(basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD))
-    assert r == "SudokuBoard(symbols=%r)" % (SYMBOLS_FOR_A_PARTIAL_BOARD)
+    assert r == "SudokuBoard(symbols=%r, strict=True)" % (SYMBOLS_FOR_A_PARTIAL_BOARD)
 
 
 def test_clear():
