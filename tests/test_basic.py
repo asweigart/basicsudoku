@@ -18,14 +18,13 @@ def test_ctor():
     assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
 
     # Test with default values for the keyword arguments.
-    board = basicsudoku.SudokuBoard(symbols=None, strict=True, solved=False)
+    board = basicsudoku.SudokuBoard(symbols=None, strict=True)
     assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
 
     # Test with default values for the keyword arguments.
-    board = basicsudoku.SudokuBoard(None, True, False)
+    board = basicsudoku.SudokuBoard(None, True)
     assert board.symbols == SYMBOLS_FOR_AN_EMPTY_BOARD
     assert board.strict == True
-    #assert board.is_solved() == True
 
 
 def test_ctor_symbols_arg():
@@ -75,12 +74,6 @@ def test_ctor_strict_arg():
     # Strict mode enabled raises an exception for invalid symbols argument.
     with pytest.raises(basicsudoku.SudokuBoardException):
         basicsudoku.SudokuBoard(symbols='1' * 81, strict=True)
-
-
-def test_ctor_solved_arg():
-    pass
-    #board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD, solved=True)
-    #assert board.symbols == SYMBOLS_FOR_A_FULL_BOARD
 
 
 def test_get_set():

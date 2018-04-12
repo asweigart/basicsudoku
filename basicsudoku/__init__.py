@@ -64,7 +64,7 @@ BOARD_LENGTH_SQRT = 3 # square root of BOARD_LENGTH
 FULL_BOARD_SIZE = BOARD_LENGTH * BOARD_LENGTH
 
 class SudokuBoard(object):
-    def __init__(self, symbols=None, strict=True, solved=False):
+    def __init__(self, symbols=None, strict=True):
         """Return a new data structure to represent a 9x9 Sudoku board.
         SudokuBoard objects are mutable and can have their symbols modified
         in-place.
@@ -84,9 +84,6 @@ class SudokuBoard(object):
 
         * strict - When strict is set to True, setting a space that causes the
         board to be invalid will raise a SudokuBoard exception.
-
-        * solved - If True, the board will be set to random, completed state. If
-        there are multiple solutions, a random one will be selected.
         """
 
         # When strict-mode is True, an exception will be raised if an illegal
@@ -96,12 +93,6 @@ class SudokuBoard(object):
 
         if symbols is not None:
             self.symbols = symbols # use symbols property to populate _board
-
-
-
-        # Solve the board, if needed.
-        if solved:
-            self.solve()
 
 
     @property
@@ -288,7 +279,6 @@ class SudokuBoard(object):
         >>> board[1, 0] = 1 # repeated symbol in same row
         >>> board.is_valid_board()
         False
-        >>>
         """
 
         # Check each of the columns for validity.
@@ -587,6 +577,24 @@ class SudokuBoard(object):
         return box
 
 
+    def get_subgrid_of(self, x, y):
+        """Returns the subgrid x and y coordinates based on the given space x
+        and y coordinates.
+
+        >>> board = SudokuBoard()
+        >>> board.get_subgrid_of(0, 0)
+        (0, 0)
+        >>> board.get_subgrid_of(1, 0)
+        (0, 0)
+        >>> board.get_subgrid_of(3, 0)
+        (1, 0)
+        >>> board.get_subgrid_of(6, 6)
+        (2, 2)
+        >>> board.get_subgrid_of(5, 8)
+        (1, 2)
+        """
+        return x // 3, y // 3
+
     def __str__(self):
         """Returns a string representation of the board. There are lines between
         the boxes but no border. It looks something like:
@@ -633,10 +641,6 @@ class SudokuBoard(object):
         "SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79', strict=True)"
         """
         return "SudokuBoard(symbols=%r, strict=%r)" % (self.symbols, self._strict)
-
-
-    def solve(self):
-        pass
 
 
     def __copy__(self):
