@@ -1,20 +1,17 @@
-# TODO - Create "implementations" that use this: a flask app, a tkinter app, a turtle.py app, a pygame app
-
 """basicsudoku
 
 A simple, basic Sudoku class in Python. Suitable for programming tutorials or experimentation.
 
-Some definitions:
-    * grid/board
-    * size
-    * group (a collection of size symbols)
-    * subgrid/box/block/region
-    * column
-    * row
-    * symbols
-    * given
-
-
+Some definitions used in this module:
+    * board - The entire 9x9 sudoku board.
+    * length - The length of the square board size, which is 9.
+    * space - One of the 81 places a symbol can go on the board.
+    * unit - A collection of 9 symbols from a row, column, or box.
+    * box - One of the nine 3x3 grids inside the board.
+    * column - The symbols going from the top to the bottom of the board.
+    * row - The symbols going from left to right on the board.
+    * symbols - A single digit from 1 to 9.
+    * given - A symbol that is on the board at the start of a puzzle.
 
 >>> board = SudokuBoard()
 >>> print(board)
@@ -99,6 +96,8 @@ class SudokuBoard(object):
 
         if symbols is not None:
             self.symbols = symbols # use symbols property to populate _board
+
+
 
         # Solve the board, if needed.
         if solved:
@@ -209,67 +208,67 @@ class SudokuBoard(object):
         return len(symbol) == 1 and symbol in EMPTY_SPACE + '123456789'
 
 
-    def is_complete_group(self, group):
-        """Returns True if group is a str of all 9 symbols with no repeats.
+    def is_complete_unit(self, unit):
+        """Returns True if unit is a str of all 9 symbols with no repeats.
         Otherwise returns False.
 
         >>> board = SudokuBoard()
-        >>> board.is_complete_group('123456789')
+        >>> board.is_complete_unit('123456789')
         True
-        >>> board.is_complete_group('987654321')
+        >>> board.is_complete_unit('987654321')
         True
-        >>> board.is_complete_group('192837465')
+        >>> board.is_complete_unit('192837465')
         True
-        >>> board.is_complete_group('111111111')
+        >>> board.is_complete_unit('111111111')
         False
-        >>> board.is_complete_group('12345678.')
+        >>> board.is_complete_unit('12345678.')
         False
-        >>> board.is_complete_group('.........')
+        >>> board.is_complete_unit('.........')
         False
         """
-        if not self.is_valid_group(group):
+        if not self.is_valid_unit(unit):
             return False
 
-        if EMPTY_SPACE in group:
+        if EMPTY_SPACE in unit:
             return False
 
-        return len(group) == BOARD_LENGTH
+        return len(unit) == BOARD_LENGTH
 
 
-    def is_valid_group(self, group):
-        """Returns True if group is a str of 9 symbols, which can include
+    def is_valid_unit(self, unit):
+        """Returns True if unit is a str of 9 symbols, which can include
         EMPTY_SPACE but doesn't have repeated symbols. Otherwise, returns
         False.
 
         >>> board = SudokuBoard()
-        >>> board.is_valid_group('123456789')
+        >>> board.is_valid_unit('123456789')
         True
-        >>> board.is_valid_group('987654321')
+        >>> board.is_valid_unit('987654321')
         True
-        >>> board.is_valid_group('192837465')
+        >>> board.is_valid_unit('192837465')
         True
-        >>> board.is_valid_group('111111111')
+        >>> board.is_valid_unit('111111111')
         False
-        >>> board.is_valid_group('12345678.')
+        >>> board.is_valid_unit('12345678.')
         True
-        >>> board.is_valid_group('.........')
+        >>> board.is_valid_unit('.........')
         True
         """
 
-        # Check to make sure group is valid.
+        # Check to make sure unit is valid.
         try:
-            if len(group) != BOARD_LENGTH:
-                raise SudokuBoardException('group must be a sequence with exactly 9 symbols, not %r' % (group,))
+            if len(unit) != BOARD_LENGTH:
+                raise SudokuBoardException('unit must be a sequence with exactly 9 symbols, not %r' % (unit,))
         except TypeError:
-            raise SudokuBoardException('group must be a sequence with exactly 9 symbols, not %r' % (group,))
+            raise SudokuBoardException('unit must be a sequence with exactly 9 symbols, not %r' % (unit,))
 
-        for symbol in group:
+        for symbol in unit:
             if not self.is_valid_symbol(symbol):
-                raise SudokuBoardException('group contains an invalid symbol: %r' % (symbol,))
+                raise SudokuBoardException('unit contains an invalid symbol: %r' % (symbol,))
 
-        # Check for any repeat symbols in group, aside from EMPTY_SPACE.
+        # Check for any repeat symbols in unit, aside from EMPTY_SPACE.
         symbolSet = set()
-        for symbol in group:
+        for symbol in unit:
             if symbol != EMPTY_SPACE and symbol in symbolSet:
                 return False
             symbolSet.add(symbol)
@@ -280,7 +279,7 @@ class SudokuBoard(object):
     def is_valid_board(self):
         """Returns True if the board is in a valid state (even if incomplete),
         otherwise return False if the board has repeated symbols set to any of
-        the rows, columns, or subgrids.
+        the rows, columns, or boxes.
 
         >>> board = SudokuBoard(strict=False)
         >>> board.is_valid_board()
@@ -294,18 +293,18 @@ class SudokuBoard(object):
 
         # Check each of the columns for validity.
         for x in range(BOARD_LENGTH):
-            if not self.is_valid_group(self.get_column(x)):
+            if not self.is_valid_unit(self.get_column(x)):
                 return False
 
         # Check each of the rows for validity.
         for y in range(BOARD_LENGTH):
-            if not self.is_valid_group(self.get_row(y)):
+            if not self.is_valid_unit(self.get_row(y)):
                 return False
 
-        # Check each of the subgrids for validity.
+        # Check each of the boxes for validity.
         for top in range(BOARD_LENGTH_SQRT):
             for left in range(BOARD_LENGTH_SQRT):
-                if not self.is_valid_group(self.get_subgrid(left, top)):
+                if not self.is_valid_unit(self.get_box(left, top)):
                     return False
 
         return True
@@ -546,9 +545,9 @@ class SudokuBoard(object):
         return [self._board[column][y] for y in range(BOARD_LENGTH)]
 
 
-    def get_subgrid(self, subgrid_x, subgrid_y):
-        """Returns a subgrid of symbols from the board as a list of single-digit
-        strings. Subgrids start at the top left and go right, then down.
+    def get_box(self, box_x, box_y):
+        """Returns a box of symbols from the board as a list of single-digit
+        strings. boxes start at the top left and go right, then down.
 
         >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
         >>> print(board)
@@ -563,34 +562,34 @@ class SudokuBoard(object):
         . 6 . | . . . | 2 8 .
         . . . | 4 1 9 | . . 5
         . . . | . 8 . | . 7 9
-        >>> _b1.get_subgrid(0, 0)
+        >>> _b1.get_box(0, 0)
         ['5', '3', '.', '6', '.', '.', '.', '9', '8']
-        >>> _b1.get_subgrid(1, 0)
+        >>> _b1.get_box(1, 0)
         ['.', '7', '.', '1', '9', '5', '.', '.', '.']
-        >>> _b1.get_subgrid(2, 0)
+        >>> _b1.get_box(2, 0)
         ['.', '.', '.', '.', '.', '.', '.', '6', '.']
-        >>> _b1.get_subgrid(0, 1)
+        >>> _b1.get_box(0, 1)
         ['8', '.', '.', '4', '.', '.', '7', '.', '.']
         """
-        if not isinstance(subgrid_x, int) or subgrid_x < 0 or subgrid_x >= BOARD_LENGTH_SQRT:
-            raise SudokuBoardException('subgrid_x must be an int between 0 and 2')
+        if not isinstance(box_x, int) or box_x < 0 or box_x >= BOARD_LENGTH_SQRT:
+            raise SudokuBoardException('box_x must be an int between 0 and 2')
 
-        if not isinstance(subgrid_y, int) or subgrid_y < 0 or subgrid_y >= BOARD_LENGTH_SQRT:
-            raise SudokuBoardException('subgrid_y must be an int between 0 and 2')
+        if not isinstance(box_y, int) or box_y < 0 or box_y >= BOARD_LENGTH_SQRT:
+            raise SudokuBoardException('box_y must be an int between 0 and 2')
 
-        subgrid = []
-        start_x = subgrid_x * BOARD_LENGTH_SQRT
-        start_y = subgrid_y * BOARD_LENGTH_SQRT
+        box = []
+        start_x = box_x * BOARD_LENGTH_SQRT
+        start_y = box_y * BOARD_LENGTH_SQRT
         for y in range(start_y, start_y + BOARD_LENGTH_SQRT):
             for x in range(start_x, start_x + BOARD_LENGTH_SQRT):
-                subgrid.append(self._board[x][y])
+                box.append(self._board[x][y])
 
-        return subgrid
+        return box
 
 
     def __str__(self):
         """Returns a string representation of the board. There are lines between
-        the subgrids but no border. It looks something like:
+        the boxes but no border. It looks something like:
 
         >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
         >>> str(board)
@@ -671,8 +670,8 @@ class SudokuBoard(object):
         """Returns an iterator that iterates over the rows in this board.
 
         >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
-        >>> for group in board.rows:
-        ...     print(group)
+        >>> for unit in board.rows:
+        ...     print(unit)
         ...
         ['5', '3', '.', '.', '7', '.', '.', '.', '.']
         ['6', '.', '.', '1', '9', '5', '.', '.', '.']
@@ -691,8 +690,8 @@ class SudokuBoard(object):
         """Returns an iterator that iterates over the columns in this board.
 
         >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
-        >>> for group in board.columns:
-        ...     print(group)
+        >>> for unit in board.columns:
+        ...     print(unit)
         ...
         ['5', '6', '.', '8', '4', '7', '.', '.', '.']
         ['3', '.', '9', '.', '.', '.', '6', '.', '.']
@@ -707,12 +706,12 @@ class SudokuBoard(object):
         return iter([self.get_column(i) for i in range(BOARD_LENGTH)])
 
     @property
-    def subgrids(self):
-        """Returns an iterator that iterates over the subgrids in this board.
+    def boxes(self):
+        """Returns an iterator that iterates over the boxes in this board.
 
         >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
-        >>> for group in board.subgrids:
-        ...     print(group)
+        >>> for unit in board.boxes:
+        ...     print(unit)
         ...
         ['5', '3', '.', '6', '.', '.', '.', '9', '8']
         ['.', '7', '.', '1', '9', '5', '.', '.', '.']
@@ -724,7 +723,7 @@ class SudokuBoard(object):
         ['.', '.', '.', '4', '1', '9', '.', '8', '.']
         ['2', '8', '.', '.', '.', '5', '.', '7', '9']
         """
-        return iter([self.get_subgrid(i % BOARD_LENGTH_SQRT, i // BOARD_LENGTH_SQRT) for i in range(BOARD_LENGTH)])
+        return iter([self.get_box(i % BOARD_LENGTH_SQRT, i // BOARD_LENGTH_SQRT) for i in range(BOARD_LENGTH)])
 
 
 class SudokuBoardException(Exception):

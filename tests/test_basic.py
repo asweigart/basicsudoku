@@ -111,24 +111,24 @@ def test_is_valid_symbol():
     assert board.is_valid_symbol('X') == False
 
 
-def test_is_complete_group():
+def test_is_complete_unit():
     board = basicsudoku.SudokuBoard()
-    assert board.is_complete_group('123456789') == True # complete group
-    assert board.is_complete_group('987654321') == True # complete group, different order
-    assert board.is_complete_group('112345678') == False # repeated '1' symbol
-    assert board.is_complete_group('12345678.') == False # empty space
+    assert board.is_complete_unit('123456789') == True # complete unit
+    assert board.is_complete_unit('987654321') == True # complete unit, different order
+    assert board.is_complete_unit('112345678') == False # repeated '1' symbol
+    assert board.is_complete_unit('12345678.') == False # empty space
 
-    # Passing a non-string for the group
+    # Passing a non-string for the unit
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.is_complete_group(42)
+        board.is_complete_unit(42)
 
-    # Test too few symbols in group.
+    # Test too few symbols in unit.
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.is_complete_group('123')
+        board.is_complete_unit('123')
 
-    # Test too many symbols in group.
+    # Test too many symbols in unit.
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.is_complete_group('1234567890')
+        board.is_complete_unit('1234567890')
 
 
 def test_is_valid_board():
@@ -142,7 +142,7 @@ def test_is_valid_board():
     board[8, 0] = '1'
     assert board.is_valid_board() == False
 
-    # Test putting the same symbol in the same subgrid.
+    # Test putting the same symbol in the same box.
     board[8, 0] = basicsudoku.EMPTY_SPACE
     board[0, 1] = '1'
     assert board.is_valid_board() == False
@@ -219,26 +219,26 @@ def test_get_column():
         board.get_column(9)
 
 
-def test_get_subgrid():
+def test_get_box():
     board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_PARTIAL_BOARD)
-    assert board.get_subgrid(0, 0) == ['5', '3', '.', '6', '.', '.', '.', '9', '8']
-    assert board.get_subgrid(0, 1) == ['8', '.', '.', '4', '.', '.', '7', '.', '.']
-    assert board.get_subgrid(1, 0) == ['.', '7', '.', '1', '9', '5', '.', '.', '.']
+    assert board.get_box(0, 0) == ['5', '3', '.', '6', '.', '.', '.', '9', '8']
+    assert board.get_box(0, 1) == ['8', '.', '.', '4', '.', '.', '7', '.', '.']
+    assert board.get_box(1, 0) == ['.', '7', '.', '1', '9', '5', '.', '.', '.']
 
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.get_subgrid(0.0 , 0)
+        board.get_box(0.0 , 0)
 
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.get_subgrid(0, 0.0)
+        board.get_box(0, 0.0)
 
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.get_subgrid(-1 , 0)
+        board.get_box(-1 , 0)
 
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.get_subgrid(0, 3)
+        board.get_box(0, 3)
 
     with pytest.raises(basicsudoku.SudokuBoardException):
-        board.get_subgrid(3, 0)
+        board.get_box(3, 0)
 
 
 def test_symbols_property():
@@ -448,12 +448,14 @@ def test_iter():
     # Test list()
     assert list(board) == list(SYMBOLS_FOR_A_FULL_BOARD)
 
+
 def test_rows_iter():
     board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
 
     it = iter(board.rows)
     assert next(it) == ['5', '3', '.', '.', '7', '.', '.', '.', '.']
     assert next(it) == ['6', '.', '.', '1', '9', '5', '.', '.', '.']
+
 
 def test_columns_iter():
     board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
@@ -462,10 +464,11 @@ def test_columns_iter():
     assert next(it) == ['5', '6', '.', '8', '4', '7', '.', '.', '.']
     assert next(it) == ['3', '.', '9', '.', '.', '.', '6', '.', '.']
 
-def test_subgrids_iter():
+
+def test_boxes_iter():
     board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
 
-    it = iter(board.subgrids)
+    it = iter(board.boxes)
     assert next(it) == ['5', '3', '.', '6', '.', '.', '.', '9', '8']
     assert next(it) == ['.', '7', '.', '1', '9', '5', '.', '.', '.']
 
