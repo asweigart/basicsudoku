@@ -5,3 +5,4 @@ __pycache__
 basicsudoku.egg-info
 htmlcov
 .coverage
+tests/.pytest_cache
