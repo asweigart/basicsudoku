@@ -1,0 +1,7 @@
+dist
+_build
+*.pyc
+__pycache__
+basicsudoku.egg-info
+htmlcov
+.coverage
