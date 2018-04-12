@@ -98,7 +98,7 @@ class SudokuBoard(object):
         self.clear_board()
 
         if symbols is not None:
-            self.symbols = symbols
+            self.symbols = symbols # use symbols property to populate _board
 
         # Solve the board, if needed.
         if solved:
