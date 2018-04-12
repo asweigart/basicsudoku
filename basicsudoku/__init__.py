@@ -664,27 +664,67 @@ class SudokuBoard(object):
 
 
     def __iter__(self):
-        return SudokuBoardIterator(self)
+        return iter(self.symbols)
 
+    @property
+    def rows(self):
+        """Returns an iterator that iterates over the rows in this board.
 
-class SudokuBoardIterator(object):
-    __slots__ = ('i', 'sudoku_board')
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> for group in board.rows:
+        ...     print(group)
+        ...
+        ['5', '3', '.', '.', '7', '.', '.', '.', '.']
+        ['6', '.', '.', '1', '9', '5', '.', '.', '.']
+        ['.', '9', '8', '.', '.', '.', '.', '6', '.']
+        ['8', '.', '.', '.', '6', '.', '.', '.', '3']
+        ['4', '.', '.', '8', '.', '3', '.', '.', '1']
+        ['7', '.', '.', '.', '2', '.', '.', '.', '6']
+        ['.', '6', '.', '.', '.', '.', '2', '8', '.']
+        ['.', '.', '.', '4', '1', '9', '.', '.', '5']
+        ['.', '.', '.', '.', '8', '.', '.', '7', '9']
+        """
+        return iter([self.get_row(i) for i in range(BOARD_LENGTH)])
 
-    def __init__(self, sudoku_board):
-        self.i = 0
-        self.sudoku_board = sudoku_board
+    @property
+    def columns(self):
+        """Returns an iterator that iterates over the columns in this board.
 
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> for group in board.columns:
+        ...     print(group)
+        ...
+        ['5', '6', '.', '8', '4', '7', '.', '.', '.']
+        ['3', '.', '9', '.', '.', '.', '6', '.', '.']
+        ['.', '.', '8', '.', '.', '.', '.', '.', '.']
+        ['.', '1', '.', '.', '8', '.', '.', '4', '.']
+        ['7', '9', '.', '6', '.', '2', '.', '1', '8']
+        ['.', '5', '.', '.', '3', '.', '.', '9', '.']
+        ['.', '.', '.', '.', '.', '.', '2', '.', '.']
+        ['.', '.', '6', '.', '.', '.', '8', '.', '7']
+        ['.', '.', '.', '3', '1', '6', '.', '5', '9']
+        """
+        return iter([self.get_column(i) for i in range(BOARD_LENGTH)])
 
-    def __next__(self):
-        if self.i == FULL_BOARD_SIZE:
-            raise StopIteration
+    @property
+    def subgrids(self):
+        """Returns an iterator that iterates over the subgrids in this board.
 
-        symbol = self.sudoku_board._board[self.i % BOARD_LENGTH][self.i // BOARD_LENGTH]
-        self.i += 1
-        return symbol
-
-    def __iter__(self):
-        return self
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> for group in board.subgrids:
+        ...     print(group)
+        ...
+        ['5', '3', '.', '6', '.', '.', '.', '9', '8']
+        ['.', '7', '.', '1', '9', '5', '.', '.', '.']
+        ['.', '.', '.', '.', '.', '.', '.', '6', '.']
+        ['8', '.', '.', '4', '.', '.', '7', '.', '.']
+        ['.', '6', '.', '8', '.', '3', '.', '2', '.']
+        ['.', '.', '3', '.', '.', '1', '.', '.', '6']
+        ['.', '6', '.', '.', '.', '.', '.', '.', '.']
+        ['.', '.', '.', '4', '1', '9', '.', '8', '.']
+        ['2', '8', '.', '.', '.', '5', '.', '7', '9']
+        """
+        return iter([self.get_subgrid(i % BOARD_LENGTH_SQRT, i // BOARD_LENGTH_SQRT) for i in range(BOARD_LENGTH)])
 
 
 class SudokuBoardException(Exception):

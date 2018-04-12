@@ -436,15 +436,38 @@ def test_iter():
     it2 = iter(board)
     assert next(it1) == '5'
     assert next(it1) == '3'
+
     assert next(it2) == '5'
     assert next(it2) == '3'
     assert next(it2) == '4'
     assert next(it2) == '6'
+
     assert next(it1) == '4'
     assert next(it1) == '6'
 
     # Test list()
     assert list(board) == list(SYMBOLS_FOR_A_FULL_BOARD)
+
+def test_rows_iter():
+    board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+
+    it = iter(board.rows)
+    assert next(it) == ['5', '3', '.', '.', '7', '.', '.', '.', '.']
+    assert next(it) == ['6', '.', '.', '1', '9', '5', '.', '.', '.']
+
+def test_columns_iter():
+    board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+
+    it = iter(board.columns)
+    assert next(it) == ['5', '6', '.', '8', '4', '7', '.', '.', '.']
+    assert next(it) == ['3', '.', '9', '.', '.', '.', '6', '.', '.']
+
+def test_subgrids_iter():
+    board = basicsudoku.SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+
+    it = iter(board.subgrids)
+    assert next(it) == ['5', '3', '.', '6', '.', '.', '.', '9', '8']
+    assert next(it) == ['.', '7', '.', '1', '9', '5', '.', '.', '.']
 
 
 if __name__ == '__main__':
