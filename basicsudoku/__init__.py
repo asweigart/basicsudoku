@@ -56,8 +56,6 @@ Some definitions used in this module:
 1 . 4 | . . . | . . .
 """
 
-import doctest
-
 EMPTY_SPACE = '.'
 BOARD_LENGTH = 9
 BOARD_LENGTH_SQRT = 3 # square root of BOARD_LENGTH
@@ -295,7 +293,7 @@ class SudokuBoard(object):
         for top in range(BOARD_LENGTH_SQRT):
             for left in range(BOARD_LENGTH_SQRT):
                 if not self.is_valid_unit(self.get_box(left, top)):
-                    return False
+                    return False # NOTE: It's really hard to get test coverage for this particular line. We'll need to find a board that passes the previous checks but fails here.
 
         return True
 
@@ -387,7 +385,7 @@ class SudokuBoard(object):
             return self._board[key % BOARD_LENGTH][key // BOARD_LENGTH]
 
         # Otherwise, if the key is a tuple or list of two ints.
-        if not isinstance(key , (tuple, list)) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
+        if not isinstance(key, (tuple, list)) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
             raise SudokuBoardException('key must be a tuple of two integers')
 
         x, y = key
@@ -453,7 +451,7 @@ class SudokuBoard(object):
                 raise SudokuBoardException('key is out of range, must be between 0 and 80, inclusive')
             key = (key % BOARD_LENGTH, key // BOARD_LENGTH)
 
-        elif not isinstance(key , tuple) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
+        elif not isinstance(key, (tuple, list)) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
             raise SudokuBoardException('key must be a tuple of two integers')
 
         # Separate the x and y coordinates from key.
@@ -905,4 +903,9 @@ hardest = '''85...24..72......9..4.........1.7..23.5...9...4...........8..7..17.
 ....7..2.8.......6.1.2.5...9.54....8.........3....85.1...3.2.8.4.......9.7..6....'''.split('\n')
 
 if __name__ == '__main__':
+    import doctest
+    import pytest
+    import os
+
     doctest.testmod()
+    pytest.main([os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tests'))])

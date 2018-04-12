@@ -1,6 +1,7 @@
+import doctest
+import os
 import pytest
 import sys
-import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import basicsudoku
@@ -86,15 +87,31 @@ def test_get_set():
     board[0, 0] = '1'
     assert board[0, 0] == '1'
 
-    with pytest.raises(basicsudoku.SudokuBoardException):
-        board[9, 0] = '1'
-
-    with pytest.raises(basicsudoku.SudokuBoardException):
-        board[0, 9] = '1'
-
+    # Test setting invalid symbols.
     with pytest.raises(basicsudoku.SudokuBoardException):
         board[0, 0] = '10'
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[0, 0] = {'hello': 'world'}
 
+    # Try to get/set invalid key.
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board['hello']
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board['hello'] = '1'
+
+    # Test out of range indexes.
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[99, 0]
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[0, 99]
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[99]
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[99, 0] = '1'
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[0, 99] = '1'
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board[99] = '1'
 
 def test_is_valid_symbol():
     board = basicsudoku.SudokuBoard()
@@ -123,6 +140,29 @@ def test_is_complete_unit():
     with pytest.raises(basicsudoku.SudokuBoardException):
         board.is_complete_unit('1234567890')
 
+
+def test_is_valid_unit():
+    board = basicsudoku.SudokuBoard()
+    assert board.is_valid_unit('123456789') == True # complete unit
+    assert board.is_valid_unit('987654321') == True # complete unit, different order
+    assert board.is_valid_unit('112345678') == False # repeated '1' symbol
+    assert board.is_valid_unit('12345678.') == True # empty space
+
+    # Passing a non-string for the unit
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.is_valid_unit(3.14)
+
+    # Test too few symbols in unit.
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.is_valid_unit('123')
+
+    # Test too many symbols in unit.
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.is_valid_unit('1234567890')
+
+    # Test having an invalid symbol in the unit.
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.is_valid_unit('X12345678')
 
 def test_is_valid_board():
     board = basicsudoku.SudokuBoard(strict=False)
@@ -468,3 +508,4 @@ def test_boxes_iter():
 
 if __name__ == '__main__':
     pytest.main()
+    doctest.testmod(basicsudoku)
