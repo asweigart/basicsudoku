@@ -159,19 +159,19 @@ class SudokuBoard(object):
 
     def clear_board(self):
         """Sets all spaces on the board to EMPTY_SPACE.
-        >>> board = SudokuBoard(symbols='4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
         >>> print(board)
-        4 . . | . . . | 8 . 5
-        . 3 . | . . . | . . .
-        . . . | 7 . . | . . .
+        5 3 . | . 7 . | . . .
+        6 . . | 1 9 5 | . . .
+        . 9 8 | . . . | . 6 .
         ------+-------+------
-        . 2 . | . . . | . 6 .
-        . . . | . 8 . | 4 . .
-        . . . | . 1 . | . . .
+        8 . . | . 6 . | . . 3
+        4 . . | 8 . 3 | . . 1
+        7 . . | . 2 . | . . 6
         ------+-------+------
-        . . . | 6 . 3 | . 7 .
-        5 . . | 2 . . | . . .
-        1 . 4 | . . . | . . .
+        . 6 . | . . . | 2 8 .
+        . . . | 4 1 9 | . . 5
+        . . . | . 8 . | . 7 9
         >>> board.clear_board()
         >>> print(board)
         . . . | . . . | . . .
@@ -282,9 +282,13 @@ class SudokuBoard(object):
         otherwise return False if the board has repeated symbols set to any of
         the rows, columns, or subgrids.
 
-        >>> board = SudokuBoard()
+        >>> board = SudokuBoard(strict=False)
         >>> board.is_valid_board()
         True
+        >>> board[0, 0] = 1
+        >>> board[1, 0] = 1 # repeated symbol in same row
+        >>> board.is_valid_board()
+        False
         >>>
         """
 
@@ -309,7 +313,18 @@ class SudokuBoard(object):
 
     def is_full(self):
         """Returns True if there are no empty spaces on the board, otherwise
-        returns False."""
+        returns False.
+
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> board.is_full()
+        False
+        >>> board = SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179')
+        >>> board.is_full()
+        True
+        >>> board = SudokuBoard(symbols='1' * 81, strict=False)
+        >>> board.is_full()
+        True
+        """
         for x in range(BOARD_LENGTH):
             for y in range(BOARD_LENGTH):
                 if self._board[x][y] == EMPTY_SPACE:
@@ -319,11 +334,63 @@ class SudokuBoard(object):
 
     def is_solved(self):
         """Returns True if the board is currently solved, otherwise returns
-        False."""
+        False.
+
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> board.is_solved()
+        False
+        >>> board = SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179')
+        >>> board.is_solved()
+        True
+        >>> board = SudokuBoard(symbols='1' * 81, strict=False)
+        >>> board.is_solved()
+        False
+        """
         return self.is_full() and self.is_valid_board()
 
 
     def __getitem__(self, key):
+        """Returns a single string symbol from a space on the board, as
+        specified by key. They key argument can be a tuple of ints for the x
+        and y coordinate of the space (with (0, 0) being the top left space) or
+        a single int from 0 to 80, inclusive, where the key increases going
+        right and then down.
+
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> print(board)
+        5 3 . | . 7 . | . . .
+        6 . . | 1 9 5 | . . .
+        . 9 8 | . . . | . 6 .
+        ------+-------+------
+        8 . . | . 6 . | . . 3
+        4 . . | 8 . 3 | . . 1
+        7 . . | . 2 . | . . 6
+        ------+-------+------
+        . 6 . | . . . | 2 8 .
+        . . . | 4 1 9 | . . 5
+        . . . | . 8 . | . 7 9
+        >>> board[0, 0]
+        '5'
+        >>> board[1, 0]
+        '3'
+        >>> board[2, 0]
+        '.'
+        >>> board[0, 1]
+        '6'
+        >>> board[8, 8]
+        '9'
+        >>> board[0]
+        '5'
+        >>> board[1]
+        '3'
+        >>> board[2]
+        '.'
+        >>> board[9]
+        '6'
+        >>> board[80]
+        '9'
+        """
+
         # If the key is a single integer (used for the iterable protocol)
         if isinstance(key, int):
             if key < 0 or key >= FULL_BOARD_SIZE:
@@ -344,6 +411,49 @@ class SudokuBoard(object):
 
 
     def __setitem__(self, key, value):
+        """Sets a single string symbol from a space on the board, as
+        specified by key. They key argument can be a tuple of ints for the x
+        and y coordinate of the space (with (0, 0) being the top left space) or
+        a single int from 0 to 80, inclusive, where the key increases going
+        right and then down.
+
+        The value argument can either be an int or a one-digit string.
+
+        >>> board = SudokuBoard()
+        >>> board[0, 0] = 5
+        >>> board[1, 0] = 3
+        >>> board[8, 8] = 9
+        >>> print(board)
+        5 3 . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        ------+-------+------
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        ------+-------+------
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . 9
+
+        >>> board2 = SudokuBoard()
+        >>> board2[0] = 5
+        >>> board2[1] = 3
+        >>> board2[80] = 9
+        >>> print(board2)
+        5 3 . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        ------+-------+------
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        ------+-------+------
+        . . . | . . . | . . .
+        . . . | . . . | . . .
+        . . . | . . . | . . 9
+        """
+
         if not isinstance(key , tuple) or len(key) != 2 or not isinstance(key[0], int) or not isinstance(key[1], int):
             raise SudokuBoardException('key must be a tuple of two integers')
 
@@ -367,6 +477,30 @@ class SudokuBoard(object):
 
 
     def get_row(self, row):
+        """Returns a row of symbols from the board as a list of single-digit
+        strings. Rows start from the top and go down.
+
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> print(board)
+        5 3 . | . 7 . | . . .
+        6 . . | 1 9 5 | . . .
+        . 9 8 | . . . | . 6 .
+        ------+-------+------
+        8 . . | . 6 . | . . 3
+        4 . . | 8 . 3 | . . 1
+        7 . . | . 2 . | . . 6
+        ------+-------+------
+        . 6 . | . . . | 2 8 .
+        . . . | 4 1 9 | . . 5
+        . . . | . 8 . | . 7 9
+        >>> board.get_row(0)
+        ['5', '3', '.', '.', '7', '.', '.', '.', '.']
+        >>> board.get_row(1)
+        ['6', '.', '.', '1', '9', '5', '.', '.', '.']
+        >>> board.get_row(8)
+        ['.', '.', '.', '.', '8', '.', '.', '7', '9']
+        """
+
         if not isinstance(row, int) or row < 0 or row >= BOARD_LENGTH:
             raise SudokuBoardException('row must be an int between 0 and 8')
 
@@ -374,6 +508,29 @@ class SudokuBoard(object):
 
 
     def get_column(self, column):
+        """Returns a column of symbols from the board as a list of single-digit
+        strings. Columns start from the left and go right.
+
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> print(board)
+        5 3 . | . 7 . | . . .
+        6 . . | 1 9 5 | . . .
+        . 9 8 | . . . | . 6 .
+        ------+-------+------
+        8 . . | . 6 . | . . 3
+        4 . . | 8 . 3 | . . 1
+        7 . . | . 2 . | . . 6
+        ------+-------+------
+        . 6 . | . . . | 2 8 .
+        . . . | 4 1 9 | . . 5
+        . . . | . 8 . | . 7 9
+        >>> board.get_column(0)
+        ['5', '6', '.', '8', '4', '7', '.', '.', '.']
+        >>> board.get_column(1)
+        ['3', '.', '9', '.', '.', '.', '6', '.', '.']
+        >>> board.get_column(8)
+        ['.', '.', '.', '3', '1', '6', '.', '5', '9']
+        """
         if not isinstance(column, int) or column < 0 or column >= BOARD_LENGTH:
             raise SudokuBoardException('column must be an int between 0 and 8')
 
@@ -381,6 +538,31 @@ class SudokuBoard(object):
 
 
     def get_subgrid(self, subgrid_x, subgrid_y):
+        """Returns a subgrid of symbols from the board as a list of single-digit
+        strings. Subgrids start at the top left and go right, then down.
+
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> print(board)
+        5 3 . | . 7 . | . . .
+        6 . . | 1 9 5 | . . .
+        . 9 8 | . . . | . 6 .
+        ------+-------+------
+        8 . . | . 6 . | . . 3
+        4 . . | 8 . 3 | . . 1
+        7 . . | . 2 . | . . 6
+        ------+-------+------
+        . 6 . | . . . | 2 8 .
+        . . . | 4 1 9 | . . 5
+        . . . | . 8 . | . 7 9
+        >>> _b1.get_subgrid(0, 0)
+        ['5', '3', '.', '6', '.', '.', '.', '9', '8']
+        >>> _b1.get_subgrid(1, 0)
+        ['.', '7', '.', '1', '9', '5', '.', '.', '.']
+        >>> _b1.get_subgrid(2, 0)
+        ['.', '.', '.', '.', '.', '.', '.', '6', '.']
+        >>> _b1.get_subgrid(0, 1)
+        ['8', '.', '.', '4', '.', '.', '7', '.', '.']
+        """
         if not isinstance(subgrid_x, int) or subgrid_x < 0 or subgrid_x >= BOARD_LENGTH_SQRT:
             raise SudokuBoardException('subgrid_x must be an int between 0 and 2')
 
@@ -436,7 +618,13 @@ class SudokuBoard(object):
 
 
     def __repr__(self):
-        return "SudokuBoard(symbols=%r)" % (self.symbols,)
+        """Returns a string that is a representation of a SudokuBoard object.
+
+        >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+        >>> repr(board)
+        "SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')"
+        """
+        return "SudokuBoard(symbols=%r, strict=%r)" % (self.symbols, self._strict)
 
 
     def solve(self):
@@ -461,6 +649,8 @@ class SudokuBoard(object):
 
 
     def __len__(self):
+        """Always returns 81, which is the number of spaces in a 9x9 sudoku
+        board."""
         return FULL_BOARD_SIZE
 
 
