@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+__version__ = '0.1.0'
+
 """basicsudoku
 
 A simple, basic Sudoku class in Python. Suitable for programming tutorials or experimentation.
