@@ -9,7 +9,7 @@ The `basicsudoku` module provides just the data structure for a 9x9 sudoku board
 
 ## Getting Started
 
-```python
+```
 >>> import basicsudoku
 >>> board = basicsudoku.SudokuBoard() # Get a blank board.
 >>> print(board)
@@ -106,23 +106,23 @@ The `basicsudoku` module is meant to be easy to learn. All methods have descript
 
 Creating an empty Sudoku board:
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard()
 ```
 
 Prepopulate a board with symbols:
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard(symbols='2...8.3...6..7..84.3.5..2.9...1.54.8.........4.27.6...3.1..7.4.72..4..6...4.1...3')
 ```
 
 Disable strict mode (strict mode causes an exception to be raised if you place a symbol on the board that makes it invalid.)
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard(strict=False)
 ```
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard()
 >>> board.strict = False
 ```
@@ -131,7 +131,7 @@ Disable strict mode (strict mode causes an exception to be raised if you place a
 
 You can assign integers or strings from 1 to 9 to an xy tuple index:
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard()
 >>> board[0, 0] = '1'
 >>> board[0, 0]
@@ -143,7 +143,7 @@ You can assign integers or strings from 1 to 9 to an xy tuple index:
 
 You can use the `symbols` attribute to get or set all of the symbols at once:
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard()
 >>> board.symbols = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
 >>> print(board)
@@ -162,7 +162,7 @@ You can use the `symbols` attribute to get or set all of the symbols at once:
 
 You can also get a unit (9 symbols) from a row, column, or box with these methods:
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard(symbols='4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
 >>> print(board)
 4 . . | . . . | 8 . 5
@@ -204,7 +204,7 @@ By default, `SudokuBoard` objects are in *strict mode*, meaning any symbols adde
 
 You can iterate over the symbols in the board, starting from the top left and going right, then down. For example:
 
-```python
+```
 >>> board = basicsudoku.SudokuBoard(symbols='4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
 >>> for symbol in board:
 ...     print(symbol, end=' ')
@@ -216,7 +216,7 @@ You can iterate over the symbols in the board, starting from the top left and go
 
 The `BasicSolver` class is passed a `SudokuBoard` object and immediately solves it.
 
-```python
+```
 >>> board = SudokuBoard(symbols='4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
 >>> print(board)
 4 . . | . . . | 8 . 5
