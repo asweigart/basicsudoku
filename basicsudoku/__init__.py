@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """basicsudoku
 
 A simple, basic Sudoku class in Python. Suitable for programming tutorials or experimentation.
@@ -59,7 +61,6 @@ Some definitions used in this module:
 
 import copy
 import time
-
 
 EMPTY_SPACE = '.'
 BOARD_LENGTH = 9
@@ -1111,12 +1112,7 @@ class BasicSolver(object):
 
 if __name__ == '__main__':
     import doctest
-    import pytest
-    import os
-
-
     doctest.testmod()
-    pytest.main([os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tests'))])
 
     # Easy puzzle (easy50), solvable through givens alone, no searching required.
     board = SudokuBoard(symbols='..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..')
