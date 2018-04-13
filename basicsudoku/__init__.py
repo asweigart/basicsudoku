@@ -927,16 +927,9 @@ hardest = '''85...24..72......9..4.........1.7..23.5...9...4...........8..7..17.
 
 
 class BasicSolver(object):
-    def __init__(self, board, timed=True):
+    def __init__(self, board):
         self.board = board
-
-        if timed:
-            start_time = time.time()
-
         self.solve()
-
-        if timed:
-            print('Solved in', round(time.time() - start_time, 2), 'seconds.')
 
 
     def solve(self):
@@ -954,6 +947,8 @@ class BasicSolver(object):
         combinations that need to be searched.
         """
 
+        start_time = time.time()
+
         # Each of the 81 spaces on the board has a set of all 9 symbols as
         # candidates for the real symbol that belongs at that space. When this
         # list is reduced to one symbol, we know we've solved that space.
@@ -964,6 +959,8 @@ class BasicSolver(object):
 
         # Search through all the remaining possibilities.
         solution_symbols = self.solve_through_search(board_candidates)
+
+        self.last_solve_time = time.time() - start_time
 
         if solution_symbols is not None:
             # A solution was found, mark all the symbols on the board object.
@@ -1131,12 +1128,18 @@ if __name__ == '__main__':
     BasicSolver(board)
     print(board, '\n')
 
-    # Medium puzzle (top95), but requiressearching.
+    # Medium puzzle (top95), but requires searching.
     board = SudokuBoard(symbols='4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
     BasicSolver(board)
     print(board, '\n')
 
     # Very hard puzzle (hardest).
     board = SudokuBoard(symbols='85...24..72......9..4.........1.7..23.5...9...4...........8..7..17..........36.4.')
+    BasicSolver(board)
+    print(board, '\n')
+
+    # The world's hardest sudoku puzzle (according to https://www.telegraph.co.uk/news/science/science-news/9359579/Worlds-hardest-sudoku-can-you-crack-it.html)
+    # made by Finnish mathematician Arto Inkala. On my laptop, this module can solve it in 1.3 seconds.
+    board = SudokuBoard(symbols='8..........36......7..9.2...5...7.......457.....1...3...1....68..85...1..9....4..')
     BasicSolver(board)
     print(board, '\n')
