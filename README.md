@@ -122,6 +122,8 @@ Disable strict mode (strict mode causes an exception to be raised if you place a
 >>> board = basicsudoku.SudokuBoard(strict=False)
 ```
 
+Or:
+
 ```
 >>> board = basicsudoku.SudokuBoard()
 >>> board.strict = False
