@@ -61,9 +61,6 @@ Some definitions used in this module:
 1 . 4 | . . . | . . .
 """
 
-import copy
-import time
-
 EMPTY_SPACE = '.'
 BOARD_LENGTH = 9
 BOARD_LENGTH_SQRT = 3 # square root of BOARD_LENGTH
@@ -124,11 +121,11 @@ class SudokuBoard(object):
         """Returns a string or tuple of all symbols on the board.
 
         >>> board = SudokuBoard()
-        >>> board.symbols
+        >>> board.symbols # an empty board
         '.................................................................................'
-        >>> board[0, 0] = '1'
+        >>> board[2, 0] = '1'
         >>> board.symbols
-        '1................................................................................'
+        '..1..............................................................................'
         """
         all_symbols = []
 
@@ -207,9 +204,9 @@ class SudokuBoard(object):
         True
         >>> board.is_valid_symbol('9')
         True
-        >>> board.is_valid_symbol('A')
+        >>> board.is_valid_symbol('A') # Symbols are only 1 to 9..
         False
-        >>> board.is_valid_symbol('01')
+        >>> board.is_valid_symbol('01') # Symbols are only one character long.
         False
         """
         symbol = str(symbol)
@@ -238,7 +235,7 @@ class SudokuBoard(object):
             return False
 
         if EMPTY_SPACE in unit:
-            return False
+            return False # If there's an empty space, the unit can't be complete.
 
         return len(unit) == BOARD_LENGTH
 
@@ -386,7 +383,7 @@ class SudokuBoard(object):
         '6'
         >>> board[8, 8]
         '9'
-        >>> board[0]
+        >>> board[0] # Single integer items range from 0 up to, but not including, 81.
         '5'
         >>> board[1]
         '3'
@@ -767,377 +764,7 @@ _b1 = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...
 _b2 = SudokuBoard(symbols='534678912672195348198342567859761423426853791713924856961537284287419635345286179')
 
 
-# Some sample puzzles from Peter Norvig's http://norvig.com/sudoku.html
-
-easy50 = '''..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..
-2...8.3...6..7..84.3.5..2.9...1.54.8.........4.27.6...3.1..7.4.72..4..6...4.1...3
-......9.7...42.18....7.5.261..9.4....5.....4....5.7..992.1.8....34.59...5.7......
-.3..5..4...8.1.5..46.....12.7.5.2.8....6.3....4.1.9.3.25.....98..1.2.6...8..6..2.
-.2.81.74.7....31...9...28.5..9.4..874..2.8..316..3.2..3.27...6...56....8.76.51.9.
-1..92....524.1...........7..5...81.2.........4.27...9..6...........3.945....71..6
-.43.8.25.6.............1.949....4.7....6.8....1.2....382.5.............5.34.9.71.
-48...69.2..2..8..19..37..6.84..1.2....37.41....1.6..49.2..85..77..9..6..6.92...18
-...9....2.5.1234...3....16.9.8.......7.....9.......2.5.91....5...7439.2.4....7...
-..19....39..7..16..3...5..7.5......9..43.26..2......7.6..1...3..42..7..65....68..
-...1254....84.....42.8......3.....95.6.9.2.1.51.....6......3.49.....72....1298...
-.6234.75.1....56..57.....4.....948..4.......6..583.....3.....91..64....7.59.8326.
-3..........5..9...2..5.4....2....7..16.....587.431.6.....89.1......67.8......5437
-63..........5....8..5674.......2......34.1.2.......345.....7..4.8.3..9.29471...8.
-....2..4...8.35.......7.6.2.31.4697.2...........5.12.3.49...73........1.8....4...
-361.259...8.96..1.4......57..8...471...6.3...259...8..74......5.2..18.6...547.329
-.5.8.7.2.6...1..9.7.254...6.7..2.3.15.4...9.81.3.8..7.9...762.5.6..9...3.8.1.3.4.
-.8...5........3457....7.8.9.6.4..9.3..7.1.5..4.8..7.2.9.1.2....8423........1...8.
-..35.29......4....1.6...3.59..251..8.7.4.8.3.8..763..13.8...1.4....2......51.48..
-...........98.51...519.742.29.4.1.65.........14.5.8.93.267.958...51.36...........
-.2..3..9....9.7...9..2.8..5..48.65..6.7...2.8..31.29..8..6.5..7...3.9....3..2..5.
-..5.....6.7...9.2....5..1.78.415.......8.3.......928.59.7..6....3.4...1.2.....6..
-.4.....5...19436....9...3..6...5...21.3...5.68...2...7..5...2....24367...3.....4.
-..4..........3...239.7...8.4....9..12.98.13.76..2....8.1...8.539...4..........8..
-36..2..89...361............8.3...6.24..6.3..76.7...1.8............418...97..3..14
-5..4...6...9...8..64..2.........1..82.8...5.17..5.........9..84..3...6...6...3..2
-..72564..4.......5.1..3..6....5.8.....8.6.2.....1.7....3..7..9.2.......4..63127..
-..........79.5.18.8.......7..73.68..45.7.8.96..35.27..7.......5.16.3.42..........
-.3.....8...9...5....75.92..7..1.5..8.2..9..3.9..4.2..1..42.71....2...8...7.....9.
-2..17.6.3.5....1.......6.79....4.7.....8.1.....9.5....31.4.......5....6.9.6.37..2
-.......8.8..7.1.4..4..2..3.374...9......3......5...321.1..6..5..5.8.2..6.8.......
-.......85...21...996..8.1..5..8...16.........89...6..7..9.7..523...54...48.......
-6.8.7.5.2.5.6.8.7...2...3..5...9...6.4.3.2.5.8...5...3..5...2...1.7.4.9.4.9.6.7.1
-.5..1..4.1.7...6.2...9.5...2.8.3.5.1.4..7..2.9.1.8.4.6...4.1...3.4...7.9.2..6..1.
-.53...79...97534..1.......2.9..8..1....9.7....8..3..7.5.......3..76412...61...94.
-..6.8.3...49.7.25....4.5...6..317..4..7...8..1..826..9...7.2....75.4.19...3.9.6..
-..5.8.7..7..2.4..532.....84.6.1.5.4...8...5...7.8.3.1.45.....916..5.8..7..3.1.6..
-...9..8..128..64...7.8...6.8..43...75.......96...79..8.9...4.1...36..284..1..7...
-....8....27.....54.95...81...98.64...2.4.3.6...69.51...17...62.46.....38....9....
-...6.2...4...5...1.85.1.62..382.671...........194.735..26.4.53.9...2...7...8.9...
-...9....2.5.1234...3....16.9.8.......7.....9.......2.5.91....5...7439.2.4....7...
-38..........4..785..9.2.3...6..9....8..3.2..9....4..7...1.7.5..495..6..........92
-...158.....2.6.8...3.....4..27.3.51...........46.8.79..5.....8...4.7.1.....325...
-.1.5..2..9....1.....2..8.3.5...3...7..8...5..6...8...4.4.1..7.....7....6..3..4.5.
-.8.....4....469...4.......7..59.46...7.6.8.3...85.21..9.......5...781....6.....1.
-9.42....7.1..........7.65.....8...9..2.9.4.6..4...2.....16.7..........3.3....57.2
-...7..8....6....31.4...2....24.7.....1..3..8.....6.29....8...7.86....5....2..6...
-..1..7.9.59..8...1.3.....8......58...5..6..2...41......8.....3.1...2..79.2.7..4..
-.....3.17.15..9..8.6.......1....7.....9...2.....5....4.......2.5..6..34.34.2.....
-3..2........1.7...7.6.3.5...7...9.8.9...2...4.1.8...5...9.4.3.1...7.2........8..6'''.split('\n')
-
-top95 = '''4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......
-52...6.........7.13...........4..8..6......5...........418.........3..2...87.....
-6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1....
-48.3............71.2.......7.5....6....2..8.............1.76...3.....4......5....
-....14....3....2...7..........9...3.6.1.............8.2.....1.4....5.6.....7.8...
-......52..8.4......3...9...5.1...6..2..7........3.....6...1..........7.4.......3.
-6.2.5.........3.4..........43...8....1....2........7..5..27...........81...6.....
-.524.........7.1..............8.2...3.....6...9.5.....1.6.3...........897........
-6.2.5.........4.3..........43...8....1....2........7..5..27...........81...6.....
-.923.........8.1...........1.7.4...........658.........6.5.2...4.....7.....9.....
-6..3.2....5.....1..........7.26............543.........8.15........4.2........7..
-.6.5.1.9.1...9..539....7....4.8...7.......5.8.817.5.3.....5.2............76..8...
-..5...987.4..5...1..7......2...48....9.1.....6..2.....3..6..2.......9.7.......5..
-3.6.7...........518.........1.4.5...7.....6.....2......2.....4.....8.3.....5.....
-1.....3.8.7.4..............2.3.1...........958.........5.6...7.....8.2...4.......
-6..3.2....4.....1..........7.26............543.........8.15........4.2........7..
-....3..9....2....1.5.9..............1.2.8.4.6.8.5...2..75......4.1..6..3.....4.6.
-45.....3....8.1....9...........5..9.2..7.....8.........1..4..........7.2...6..8..
-.237....68...6.59.9.....7......4.97.3.7.96..2.........5..47.........2....8.......
-..84...3....3.....9....157479...8........7..514.....2...9.6...2.5....4......9..56
-.98.1....2......6.............3.2.5..84.........6.........4.8.93..5...........1..
-..247..58..............1.4.....2...9528.9.4....9...1.........3.3....75..685..2...
-4.....8.5.3..........7......2.....6.....5.4......1.......6.3.7.5..2.....1.9......
-.2.3......63.....58.......15....9.3....7........1....8.879..26......6.7...6..7..4
-1.....7.9.4...72..8.........7..1..6.3.......5.6..4..2.........8..53...7.7.2....46
-4.....3.....8.2......7........1...8734.......6........5...6........1.4...82......
-.......71.2.8........4.3...7...6..5....2..3..9........6...7.....8....4......5....
-6..3.2....4.....8..........7.26............543.........8.15........8.2........7..
-.47.8...1............6..7..6....357......5....1..6....28..4.....9.1...4.....2.69.
-......8.17..2........5.6......7...5..1....3...8.......5......2..4..8....6...3....
-38.6.......9.......2..3.51......5....3..1..6....4......17.5..8.......9.......7.32
-...5...........5.697.....2...48.2...25.1...3..8..3.........4.7..13.5..9..2...31..
-.2.......3.5.62..9.68...3...5..........64.8.2..47..9....3.....1.....6...17.43....
-.8..4....3......1........2...5...4.69..1..8..2...........3.9....6....5.....2.....
-..8.9.1...6.5...2......6....3.1.7.5.........9..4...3...5....2...7...3.8.2..7....4
-4.....5.8.3..........7......2.....6.....5.8......1.......6.3.7.5..2.....1.8......
-1.....3.8.6.4..............2.3.1...........958.........5.6...7.....8.2...4.......
-1....6.8..64..........4...7....9.6...7.4..5..5...7.1...5....32.3....8...4........
-249.6...3.3....2..8.......5.....6......2......1..4.82..9.5..7....4.....1.7...3...
-...8....9.873...4.6..7.......85..97...........43..75.......3....3...145.4....2..1
-...5.1....9....8...6.......4.1..........7..9........3.8.....1.5...2..4.....36....
-......8.16..2........7.5......6...2..1....3...8.......2......7..3..8....5...4....
-.476...5.8.3.....2.....9......8.5..6...1.....6.24......78...51...6....4..9...4..7
-.....7.95.....1...86..2.....2..73..85......6...3..49..3.5...41724................
-.4.5.....8...9..3..76.2.....146..........9..7.....36....1..4.5..6......3..71..2..
-.834.........7..5...........4.1.8..........27...3.....2.6.5....5.....8........1..
-..9.....3.....9...7.....5.6..65..4.....3......28......3..75.6..6...........12.3.8
-.26.39......6....19.....7.......4..9.5....2....85.....3..2..9..4....762.........4
-2.3.8....8..7...........1...6.5.7...4......3....1............82.5....6...1.......
-6..3.2....1.....5..........7.26............843.........8.15........8.2........7..
-1.....9...64..1.7..7..4.......3.....3.89..5....7....2.....6.7.9.....4.1....129.3.
-.........9......84.623...5....6...453...1...6...9...7....1.....4.5..2....3.8....9
-.2....5938..5..46.94..6...8..2.3.....6..8.73.7..2.........4.38..7....6..........5
-9.4..5...25.6..1..31......8.7...9...4..26......147....7.......2...3..8.6.4.....9.
-...52.....9...3..4......7...1.....4..8..453..6...1...87.2........8....32.4..8..1.
-53..2.9...24.3..5...9..........1.827...7.........981.............64....91.2.5.43.
-1....786...7..8.1.8..2....9........24...1......9..5...6.8..........5.9.......93.4
-....5...11......7..6.....8......4.....9.1.3.....596.2..8..62..7..7......3.5.7.2..
-.47.2....8....1....3....9.2.....5...6..81..5.....4.....7....3.4...9...1.4..27.8..
-......94.....9...53....5.7..8.4..1..463...........7.8.8..7.....7......28.5.26....
-.2......6....41.....78....1......7....37.....6..412....1..74..5..8.5..7......39..
-1.....3.8.6.4..............2.3.1...........758.........7.5...6.....8.2...4.......
-2....1.9..1..3.7..9..8...2.......85..6.4.........7...3.2.3...6....5.....1.9...2.5
-..7..8.....6.2.3...3......9.1..5..6.....1.....7.9....2........4.83..4...26....51.
-...36....85.......9.4..8........68.........17..9..45...1.5...6.4....9..2.....3...
-34.6.......7.......2..8.57......5....7..1..2....4......36.2..1.......9.......7.82
-......4.18..2........6.7......8...6..4....3...1.......6......2..5..1....7...3....
-.4..5..67...1...4....2.....1..8..3........2...6...........4..5.3.....8..2........
-.......4...2..4..1.7..5..9...3..7....4..6....6..1..8...2....1..85.9...6.....8...3
-8..7....4.5....6............3.97...8....43..5....2.9....6......2...6...7.71..83.2
-.8...4.5....7..3............1..85...6.....2......4....3.26............417........
-....7..8...6...5...2...3.61.1...7..2..8..534.2..9.......2......58...6.3.4...1....
-......8.16..2........7.5......6...2..1....3...8.......2......7..4..8....5...3....
-.2..........6....3.74.8.........3..2.8..4..1.6..5.........1.78.5....9..........4.
-.52..68.......7.2.......6....48..9..2..41......1.....8..61..38.....9...63..6..1.9
-....1.78.5....9..........4..2..........6....3.74.8.........3..2.8..4..1.6..5.....
-1.......3.6.3..7...7...5..121.7...9...7........8.1..2....8.64....9.2..6....4.....
-4...7.1....19.46.5.....1......7....2..2.3....847..6....14...8.6.2....3..6...9....
-......8.17..2........5.6......7...5..1....3...8.......5......2..3..8....6...4....
-963......1....8......2.5....4.8......1....7......3..257......3...9.2.4.7......9..
-15.3......7..4.2....4.72.....8.........9..1.8.1..8.79......38...........6....7423
-..........5724...98....947...9..3...5..9..12...3.1.9...6....25....56.....7......6
-....75....1..2.....4...3...5.....3.2...8...1.......6.....1..48.2........7........
-6.....7.3.4.8.................5.4.8.7..2.....1.3.......2.....5.....7.9......1....
-....6...4..6.3....1..4..5.77.....8.5...8.....6.8....9...2.9....4....32....97..1..
-.32.....58..3.....9.428...1...4...39...6...5.....1.....2...67.8.....4....95....6.
-...5.3.......6.7..5.8....1636..2.......4.1.......3...567....2.8..4.7.......2..5..
-.5.3.7.4.1.........3.......5.8.3.61....8..5.9.6..1........4...6...6927....2...9..
-..5..8..18......9.......78....4.....64....9......53..2.6.........138..5....9.714.
-..........72.6.1....51...82.8...13..4.........37.9..1.....238..5.4..9.........79.
-...658.....4......12............96.7...3..5....2.8...3..19..8..3.6.....4....473..
-.2.3.......6..8.9.83.5........2...8.7.9..5........6..4.......1...1...4.22..7..8.9
-.5..9....1.....6.....3.8.....8.4...9514.......3....2..........4.8...6..77..15..6.
-.....2.......7...17..3...9.8..7......2.89.6...13..6....9..5.824.....891..........
-3...8.......7....51..............36...2..4....7...........6.13..452...........8..'''.split('\n')
-
-hardest = '''85...24..72......9..4.........1.7..23.5...9...4...........8..7..17..........36.4.
-..53.....8......2..7..1.5..4....53...1..7...6..32...8..6.5....9..4....3......97..
-12..4......5.69.1...9...5.........7.7...52.9..3......2.9.6...5.4..9..8.1..3...9.4
-...57..3.1......2.7...234......8...4..7..4...49....6.5.42...3.....7..9....18.....
-7..1523........92....3.....1....47.8.......6............9...5.6.4.9.7...8....6.1.
-1....7.9..3..2...8..96..5....53..9...1..8...26....4...3......1..4......7..7...3..
-1...34.8....8..5....4.6..21.18......3..1.2..6......81.52..7.9....6..9....9.64...2
-...92......68.3...19..7...623..4.1....1...7....8.3..297...8..91...5.72......64...
-.6.5.4.3.1...9...8.........9...5...6.4.6.2.7.7...4...5.........4...8...1.5.2.3.4.
-7.....4...2..7..8...3..8.799..5..3...6..2..9...1.97..6...3..9...3..4..6...9..1.35
-....7..2.8.......6.1.2.5...9.54....8.........3....85.1...3.2.8.4.......9.7..6....'''.split('\n')
-
-
-class BasicSolver(object):
-    def __init__(self, board):
-        self.board = board
-        self.solve()
-
-
-    def solve(self):
-        """Solve the sudoku puzzle as given in self.board, which is set to a
-        SudokuBoard object passed to __init__(). Returns True if a solution is
-        found, otherwise returns False.
-
-        There are two steps to solving. First, the possible candidates are
-        narrowed down based on the given symbols that the board starts with.
-
-        Second, the remaining possible candidates are searched through until
-        a solution is found. Multiple solutions are not detected; the first
-        solution found is the one returned. It is important to check the spaces
-        with the fewest candidates first, to cut down on the total number of
-        combinations that need to be searched.
-        """
-
-        start_time = time.time()
-
-        # Each of the 81 spaces on the board has a set of all 9 symbols as
-        # candidates for the real symbol that belongs at that space. When this
-        # list is reduced to one symbol, we know we've solved that space.
-        board_candidates = [[set('123456789') for j in range(BOARD_LENGTH)] for i in range(BOARD_LENGTH)]
-
-        # Remove the given symbols that the board started with.
-        self.remove_givens_from_board_candidates(board_candidates)
-
-        # Search through all the remaining possibilities.
-        solution_symbols = self.solve_through_search(board_candidates)
-
-        self.last_solve_time = time.time() - start_time
-
-        if solution_symbols is not None:
-            # A solution was found, mark all the symbols on the board object.
-            self.board.symbols = solution_symbols
-            return True
-        else:
-            return False
-
-
-    def remove_givens_from_board_candidates(self, board_candidates):
-        """Remove the givens from all peer spaces. This function modifies
-        board_candidates in place."""
-        for i, symbol in enumerate(self.board):
-            if symbol != EMPTY_SPACE:
-                x, y = i % BOARD_LENGTH, i // BOARD_LENGTH
-                self.set_symbol(symbol, board_candidates, x, y)
-
-
-    def set_symbol(self, symbol, board_candidates, symbol_x, symbol_y):
-        """Set the symbol on the solver's SudokuBoard object, then remove that
-        symbol from all the peers of the space at symbol_x symbol_y. This may
-        cause other spaces to become solved, which will then call set_symbol()
-        again. This function modifies board_candidates in palce."""
-        symbol = str(symbol)
-        board_candidates[symbol_x][symbol_y] = set(symbol) # ensure that the board_candidates only have this symbol here
-        self.remove_from_peers(symbol, board_candidates, symbol_x, symbol_y)
-
-
-    def remove_from_peers(self, candidate, board_candidates, candidate_x, candidate_y):
-        """Remove the candidate from the peer spaces of candidate_x candidate_y
-        in board_candidates. This function modifies board_candidates in place."""
-        candidate = str(candidate)
-
-        # Remove candidate from the row of the xy space.
-        for x in range(BOARD_LENGTH):
-            if x != candidate_x:
-                self.remove_candidate(board_candidates, candidate, x, candidate_y)
-
-        # Remove candidate from the column of the xy space.
-        for y in range(BOARD_LENGTH):
-            if y != candidate_y:
-                self.remove_candidate(board_candidates, candidate, candidate_x, y)
-
-        # Remove candidate from the box of the xy space.
-        box_x, box_y = candidate_x // 3, candidate_y // 3 # Get the top left space of the box.
-        start_x = box_x * BOARD_LENGTH_SQRT
-        start_y = box_y * BOARD_LENGTH_SQRT
-        for y in range(start_y, start_y + BOARD_LENGTH_SQRT):
-            for x in range(start_x, start_x + BOARD_LENGTH_SQRT):
-                if x != candidate_x and y != candidate_y:
-                    self.remove_candidate(board_candidates, candidate, x, y)
-
-
-    def remove_candidate(self, board_candidates, candidate, x, y):
-        """Removes the candidate symbol from board_candidates at the x y space. This
-         function modifies board_candidates in place."""
-
-        if candidate in board_candidates[x][y]:
-            board_candidates[x][y].remove(candidate)
-            if len(board_candidates[x][y]) == 1:
-                # There is only one possible candidate for this space, menaing
-                # we've solved another space. Remove the symbol from the space's
-                # peers.
-                remaining_symbol = tuple(board_candidates[x][y])[0]
-                self.set_symbol(remaining_symbol, board_candidates, x, y)
-            elif len(board_candidates[x][y]) == 0:
-                raise SudokuBoardException('removing this candidate causes the board to be invalid')
-
-
-    def solve_through_search(self, board_candidates):
-        """Attempts a brute-force search of the possible solutions for the
-        board, and returns when found."""
-
-        # Check the space with the fewest candidates, to minimize the overall
-        # number of checks needed. (Don't include spaces that only have one
-        # candidate, i.e. spaces that are solved.)
-        order_of_spaces_to_check = [i for i in range(FULL_BOARD_SIZE) if len(board_candidates[i % BOARD_LENGTH][i // BOARD_LENGTH]) != 1]
-        order_of_spaces_to_check.sort(key=lambda i: len(board_candidates[i % BOARD_LENGTH][i // BOARD_LENGTH]), reverse=False)
-        if len(order_of_spaces_to_check) == 0:
-            # All the spaces have been solved, so lets just return the symbols that they form.
-            return self.make_board_from_candidates(board_candidates).symbols
-        space_to_check = order_of_spaces_to_check[0]
-
-        x, y = space_to_check % BOARD_LENGTH, space_to_check // BOARD_LENGTH
-        candidates = board_candidates[x][y]
-
-        assert len(candidates) > 0, 'board_candidates[%s][%s] has no candidates, which should never happen' % (x, y)
-
-        # Loop through all possible candidates for this space.
-        for candidate in candidates:
-            # This function is recursive, and testing each candidate in each
-            # call will need its own board_candidates.
-            board_candidates_copy = copy.deepcopy(board_candidates)
-
-            # Set this candidate as the only possible candidate in the copy
-            # of board_candidates, then test to see if the board it produces
-            # is valid.
-            board_candidates_copy[x][y] = set(candidate)
-            try:
-                self.remove_from_peers(candidate, board_candidates_copy, x, y)
-            except SudokuBoardException:
-                # Removing that candidate from the peers has caused a space to
-                # have zero candidates, meaning the board will be in an invalid
-                # state. So this candidate cannot be the solution and we should
-                # move on to the next candidate.
-                continue
-
-            board = self.make_board_from_candidates(board_candidates_copy)
-            if not board.is_valid_board():
-                # This candidate causes the board to become invalid, so this is
-                # not the correct solution for this space. Continue on to the
-                # next candidate.
-                continue
-
-            # If the board is both valid and full, the whole board is solved.
-            if board.is_full():
-                return board.symbols # BASE CASE
-
-            # Continue searching.
-            result = self.solve_through_search(board_candidates_copy) # RECUSIVE CASE
-            if result is not None:
-                return result # BASE CASE
-
-        # Exhausted all possible candidates and could not find a solution.
-        return None # BASE CASE
-
-
-    def make_board_from_candidates(self, board_candidates):
-        """Returns a SudokuBoard object, with the symbols set wherever the
-        board_candidates have only one possible candidate."""
-        symbols = []
-        for i in range(FULL_BOARD_SIZE):
-            x, y = i % BOARD_LENGTH, i // BOARD_LENGTH
-
-            assert len(board_candidates[x][y]) > 0, 'Somehow board_candidates at x %s, y %s has no candidates.' % (x, y)
-
-            if len(board_candidates[x][y]) == 1:
-                # If there is only one candidate, add it to the symbols list.
-                the_one_possible_candidate = tuple(board_candidates[x][y])[0]
-                symbols.append(the_one_possible_candidate)
-            else:
-                # If there are multiple candidates, mark it as an empty space.
-                symbols.append(EMPTY_SPACE)
-
-        return SudokuBoard(symbols=''.join(symbols), strict=False)
-
-
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-
-    # Easy puzzle (easy50), solvable through givens alone, no searching required.
-    board = SudokuBoard(symbols='..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..')
-    BasicSolver(board)
-    print(board, '\n')
-
-    # Easy puzzle (easy50), but requires searching.
-    board = SudokuBoard(symbols='2...8.3...6..7..84.3.5..2.9...1.54.8.........4.27.6...3.1..7.4.72..4..6...4.1...3')
-    BasicSolver(board)
-    print(board, '\n')
-
-    # Medium puzzle (top95), but requires searching.
-    board = SudokuBoard(symbols='4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
-    BasicSolver(board)
-    print(board, '\n')
-
-    # Very hard puzzle (hardest).
-    board = SudokuBoard(symbols='85...24..72......9..4.........1.7..23.5...9...4...........8..7..17..........36.4.')
-    BasicSolver(board)
-    print(board, '\n')
-
-    # The world's hardest sudoku puzzle (according to https://www.telegraph.co.uk/news/science/science-news/9359579/Worlds-hardest-sudoku-can-you-crack-it.html)
-    # made by Finnish mathematician Arto Inkala. On my laptop, this module can solve it in 1.3 seconds.
-    board = SudokuBoard(symbols='8..........36......7..9.2...5...7.......457.....1...3...1....68..85...1..9....4..')
-    BasicSolver(board)
-    print(board, '\n')
