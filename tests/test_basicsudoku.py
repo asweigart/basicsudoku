@@ -300,6 +300,8 @@ def test_symbols_property():
     # Test validation for setting symbols
     with pytest.raises(basicsudoku.SudokuBoardException):
         board.symbols = '1'
+    with pytest.raises(basicsudoku.SudokuBoardException):
+        board.symbols = 42
 
     # Test setting symbols to an invalid board in strict mode.
     board = basicsudoku.SudokuBoard(strict=True)
