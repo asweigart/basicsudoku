@@ -358,7 +358,7 @@ def test_repr():
 
 def test_clear():
     board = basicsudoku.SudokuBoard(symbols=SYMBOLS_FOR_A_FULL_BOARD)
-    board.clear_board()
+    board.clear()
     for x in range(basicsudoku.BOARD_LENGTH):
         for y in range(basicsudoku.BOARD_LENGTH):
             assert board[x, y] == basicsudoku.EMPTY_SPACE
@@ -506,6 +506,27 @@ def test_boxes_iter():
     it = iter(board.boxes)
     assert next(it) == ['5', '3', '.', '6', '.', '.', '.', '9', '8']
     assert next(it) == ['.', '7', '.', '1', '9', '5', '.', '.', '.']
+
+
+
+def test_barebones():
+    # These tests aren't thorough, but they will at least offer complete coverage.
+    board = basicsudoku.BareBonesSudokuBoard('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
+    assert board.get_row(0) == ['5', '3', '.', '.', '7', '.', '.', '.', '.']
+    assert board.get_column(0) == ['5', '6', '.', '8', '4', '7', '.', '.', '.']
+    assert board.get_box(0, 0) == ['5', '3', '.', '6', '.', '.', '.', '9', '8']
+    assert repr(board) == "BareBonesSudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')"
+    assert str(board) == '5 3 . | . 7 . | . . .\n6 . . | 1 9 5 | . . .\n. 9 8 | . . . | . 6 .\n------+-------+------\n8 . . | . 6 . | . . 3\n4 . . | 8 . 3 | . . 1\n7 . . | . 2 . | . . 6\n------+-------+------\n. 6 . | . . . | 2 8 .\n. . . | 4 1 9 | . . 5\n. . . | . 8 . | . 7 9'
+    assert board.symbols == '53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79'
+    assert not board.is_solved()
+    assert board.is_valid_board()
+
+    board = basicsudoku.BareBonesSudokuBoard('534678912672195348198342567859761423426853791713924856961537284287419635345286179')
+    assert board.is_full()
+    board[0, 0] = '1'
+    assert not board.is_valid_board()
+    assert board[0, 0] == '1'
+
 
 
 if __name__ == '__main__':

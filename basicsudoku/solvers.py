@@ -56,10 +56,11 @@ class BasicSolver(object):
     def remove_givens_from_board_candidates(self, board_candidates):
         """Remove the givens from all peer spaces. This function modifies
         board_candidates in place."""
-        for i, symbol in enumerate(self.board):
-            if symbol != EMPTY_SPACE:
-                x, y = i % BOARD_LENGTH, i // BOARD_LENGTH
-                self.set_symbol(symbol, board_candidates, x, y)
+        for x in range(BOARD_LENGTH):
+            for y in range(BOARD_LENGTH):
+                symbol = self.board[x, y]
+                if symbol != EMPTY_SPACE:
+                    self.set_symbol(symbol, board_candidates, x, y)
 
 
     def set_symbol(self, symbol, board_candidates, symbol_x, symbol_y):

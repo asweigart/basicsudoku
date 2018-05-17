@@ -66,6 +66,201 @@ BOARD_LENGTH = 9
 BOARD_LENGTH_SQRT = 3 # square root of BOARD_LENGTH
 FULL_BOARD_SIZE = BOARD_LENGTH * BOARD_LENGTH
 
+class BareBonesSudokuBoard(object):
+    def __init__(self, symbols=None):
+        """Return a new data structure to represent a 9x9 Sudoku board.
+        BareBonesSudokuBoard objects are mutable and can have their symbols
+        modified in-place.
+
+        This class is similar to SudokuBoard, with fewer features and no
+        checks. Non-SudokuBoardException exceptions being raised do not
+        necessarily indicate a bug with this class. Also, this class doesn't
+        have doctests.
+
+        Symbols can be set using a tuple of two integer indexes (0-8 inclusive)
+        for the position, while the symbol is str between 1 and 9.
+
+        Empty spaces on the board are set to EMPTY_SPACE, which is the '.'
+        string.
+
+        * symbols - An optional string of 81 symbols to initially fill the board
+        with. EMPTY_SPACE, that is '.', can be a symbol. The symbols argument
+        doesn't have to produce a valid board.
+        """
+        self.clear() # creates the _board attribute
+
+        if symbols is not None:
+            self.symbols = symbols # use the symbols property to populate _board
+
+    @property
+    def symbols(self):
+        """Returns a string or tuple of all symbols on the board."""
+        all_symbols = []
+
+        # Loop over all 81 spaces on the board.
+        for y in range(BOARD_LENGTH):
+            for x in range(BOARD_LENGTH):
+                all_symbols.append(self._board[x][y])
+
+        return ''.join(all_symbols)
+
+
+    @symbols.setter
+    def symbols(self, value):
+        # Place the symbol on the board.
+        for i, symbol in enumerate(value):
+            self._board[i % BOARD_LENGTH][i // BOARD_LENGTH] = symbol
+
+
+    def clear(self):
+        """Sets all spaces on the board to EMPTY_SPACE."""
+        self._board = [[EMPTY_SPACE] * BOARD_LENGTH for i in range(BOARD_LENGTH)] # create an empty board
+
+
+    def is_valid_unit(self, unit):
+        """Returns True if unit is a str of 9 symbols, which can include
+        EMPTY_SPACE but doesn't have repeated symbols. Otherwise, returns
+        False."""
+
+        # Check for any repeat symbols in unit, aside from EMPTY_SPACE.
+        symbolSet = set()
+        for symbol in unit:
+            if symbol != EMPTY_SPACE and symbol in symbolSet:
+                return False
+            symbolSet.add(symbol)
+
+        return True
+
+
+    def is_valid_board(self):
+        """Returns True if the board is in a valid state (even if incomplete),
+        otherwise return False if the board has repeated symbols set to any of
+        the rows, columns, or boxes."""
+
+        # Check each of the columns for validity.
+        for x in range(BOARD_LENGTH):
+            if not self.is_valid_unit(self.get_column(x)):
+                return False
+
+        # Check each of the rows for validity.
+        for y in range(BOARD_LENGTH):
+            if not self.is_valid_unit(self.get_row(y)):
+                return False
+
+        # Check each of the boxes for validity.
+        for top in range(BOARD_LENGTH_SQRT):
+            for left in range(BOARD_LENGTH_SQRT):
+                if not self.is_valid_unit(self.get_box(left, top)):
+                    return False # NOTE: It's really hard to get test coverage for this particular line. We'll need to find a board that passes the previous checks but fails here.
+
+        return True
+
+
+    def is_full(self):
+        """Returns True if there are no empty spaces on the board, otherwise
+        returns False."""
+
+        for x in range(BOARD_LENGTH):
+            for y in range(BOARD_LENGTH):
+                if self._board[x][y] == EMPTY_SPACE:
+                    return False
+        return True
+
+
+    def is_solved(self):
+        """Returns True if the board is currently solved, otherwise returns
+        False."""
+
+        return self.is_full() and self.is_valid_board()
+
+
+    def __getitem__(self, key):
+        """Returns a single string symbol from a space on the board, as
+        specified by key. They key argument can be a tuple of ints for the x
+        and y coordinate of the space (with (0, 0) being the top left space) or
+        a single int from 0 to 80, inclusive, where the key increases going
+        right and then down."""
+
+        x, y = key # Split the key into x and y coordinates.
+        return self._board[x][y]
+
+
+    def __setitem__(self, key, value):
+        """Sets a single string symbol from a space on the board, as
+        specified by key. They key argument is a tuple of ints for the x and y
+        coordinate of the space (with (0, 0) being the top left space).
+
+        The value argument can either be an int or a one-digit string."""
+        value = str(value)
+        x, y = key # Split the key into x and y coordinates.
+        self._board[x][y] = value # Set the space to the new symbol.
+
+
+    def get_row(self, row):
+        """Returns a row of symbols from the board as a list of single-digit
+        strings. Rows start from the top and go down."""
+
+        return [self._board[x][row] for x in range(BOARD_LENGTH)]
+
+
+    def get_column(self, column):
+        """Returns a column of symbols from the board as a list of single-digit
+        strings. Columns start from the left and go right."""
+
+        return [self._board[column][y] for y in range(BOARD_LENGTH)]
+
+
+    def get_box(self, box_x, box_y):
+        """Returns a box of symbols from the board as a list of single-digit
+        strings. boxes start at the top left and go right, then down."""
+
+        # Get the 9 symbols from the box, starting at the top left and going
+        # right and then down.
+        box = []
+        start_x = box_x * BOARD_LENGTH_SQRT
+        start_y = box_y * BOARD_LENGTH_SQRT
+        for y in range(start_y, start_y + BOARD_LENGTH_SQRT):
+            for x in range(start_x, start_x + BOARD_LENGTH_SQRT):
+                box.append(self._board[x][y])
+
+        return box
+
+
+    def __str__(self):
+        """Returns a string representation of the board. There are lines between
+        the boxes but no border. It looks something like:
+        """
+        all_rows = []
+
+        # Go through each row, gathering symbols for the string.
+        for y in range(BOARD_LENGTH):
+            row = self.get_row(y)
+
+            # Add vertical separators to the row.
+            row.insert(3, '|')
+            row.insert(7, '|')
+
+            all_rows.append(' '.join(row))
+
+            # Add a horizontal separator, if needed.
+            if y == 2 or y == 5:
+                all_rows.append('------+-------+------')
+
+        return '\n'.join(all_rows)
+
+
+    def __repr__(self):
+        """Returns a string that is a representation of a SudokuBoard object."""
+        return "BareBonesSudokuBoard(symbols=%r)" % (self.symbols)
+
+
+
+
+
+
+
+
+
 class SudokuBoard(object):
     def __init__(self, symbols=None, strict=True):
         """Return a new data structure to represent a 9x9 Sudoku board.
@@ -92,7 +287,7 @@ class SudokuBoard(object):
         # When strict-mode is True, an exception will be raised if an illegal
         # symbol is placed on the board.
         self._strict = strict
-        self.clear_board() # make the board completely empty
+        self.clear() # creates the _board attribute
 
         if symbols is not None:
             self.symbols = symbols # use the symbols property to populate _board
@@ -157,11 +352,11 @@ class SudokuBoard(object):
 
         # If the results in an invalid board while strict mode is enabled, raise an exception.
         if self._strict and not self.is_valid_board():
-            self.clear_board()
+            self.clear()
             raise SudokuBoardException('symbols results in an invalid board while strict mode is enabled')
 
 
-    def clear_board(self):
+    def clear(self):
         """Sets all spaces on the board to EMPTY_SPACE.
         >>> board = SudokuBoard(symbols='53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')
         >>> print(board)
@@ -176,7 +371,7 @@ class SudokuBoard(object):
         . 6 . | . . . | 2 8 .
         . . . | 4 1 9 | . . 5
         . . . | . 8 . | . 7 9
-        >>> board.clear_board()
+        >>> board.clear()
         >>> print(board)
         . . . | . . . | . . .
         . . . | . . . | . . .
