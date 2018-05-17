@@ -15,6 +15,7 @@ setup(
     author_email='al@inventwithpython.com',
     description=('A simple, basic Sudoku class in Python. Suitable for programming tutorials or experimentation.'),
     license='BSD',
+    long_description=long_description,
     packages=['basicsudoku'],
     test_suite='tests',
     install_requires=[],
