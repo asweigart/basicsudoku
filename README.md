@@ -260,3 +260,9 @@ The module has pytest unit tests in the *tests/test_basic.py* file, as well as d
 In the future I plan on adding a puzzle generator, with variable difficulty setting. I'd also like the solver to detect if there are multiple solutions to a board.
 
 `basicsudoku` is written for readability, not performance. There are many places where the performance could be improved, especially in the solver. There are no plans for improving the performance. This module was made as a learning tool, not as an efficient sudoku solver (of which there are already many).
+
+
+Support
+-------
+
+If you find this project helpful and would like to support its development, [consider donating to its creator on Patreon](https://www.patreon.com/AlSweigart).
